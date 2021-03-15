@@ -1,0 +1,9 @@
+#pragma once
+enum MultisampleType
+{
+    MULTISAMPLE_TYPE_INVALID = 0,
+    MULTISAMPLE_TYPE_NONE = 1,
+    MULTISAMPLE_TYPE_2X = 2,
+    MULTISAMPLE_TYPE_4X = 4,
+    MULTISAMPLE_TYPE_8X = 8
+};
