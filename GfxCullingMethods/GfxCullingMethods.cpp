@@ -171,7 +171,7 @@ int main()
     camera1.m_UseAngles = true;
     camera2.m_UseAngles = true;
 
-    SuperMesh* mesh = SuperMesh::FromFile(device, textureCollection, "SchoolGirlOBJ/D0208059.obj");
+    SuperMesh* mesh = SuperMesh::FromFile(device, textureCollection, "Data/SchoolGirlOBJ/D0208059.obj");
     std::vector<SuperMesh*> subMeshes;
     subMeshes.resize(mesh->GetSubMeshesCount());
     for (size_t i = 0; i < mesh->GetSubMeshesCount(); i++)
