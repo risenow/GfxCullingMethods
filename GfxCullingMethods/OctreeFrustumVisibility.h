@@ -32,30 +32,16 @@ public:
 
         m_Octree.GatherVisiblePayload(frustum, m_LastVisibleMeshes, 0, device.GetFrameIndex());
 
-        std::unordered_set<SuperMeshInstance*> testCorr;
-        for (SuperMeshInstance* inst : m_LastVisibleMeshes)
-        {
-            assert(testCorr.find(inst) == testCorr.end());
-            testCorr.insert(inst);
-        }
-
         visibleMeshes = m_LastVisibleMeshes;
     }
     virtual void AddMeshes(const std::vector<SuperMeshInstance*>& meshes, bool rebuild = false) override final
     {
         for (SuperMeshInstance* mesh : meshes)
             m_Octree.Add(m_AABB, mesh->GetAABB(), mesh);
-            //m_Octree.Add(mesh->GetAABB(), mesh);
-
-        //if (rebuild)
-        //    Rebuild();
     }
     virtual void AddMesh(SuperMeshInstance* mesh, bool rebuild = false) override final
     {
-        //m_Octree.Add(mesh->GetAABB(), mesh);
         m_Octree.Add(m_AABB, mesh->GetAABB(), mesh);
-        //if (rebuild)
-        //    Rebuild();
     }
     virtual void Rebuild() override final
     {

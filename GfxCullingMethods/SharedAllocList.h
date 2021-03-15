@@ -1,11 +1,12 @@
 #pragma once
 #include "PagedObjPool.h"
 
+// dynamic pool allocated list that is not possible with std::list due to rebind reqierement
 template<class T>
-class LightList
+class SharedAllocList 
 {
 public:
-    LightList() : m_Sentinel(nullptr), m_Size(0)
+    SharedAllocList() : m_Sentinel(nullptr), m_Size(0)
     {}
     
     struct Node
@@ -19,7 +20,7 @@ public:
 
     typedef PagedObjPool<Node, 8192> Allocator;
 
-    LightList(Allocator* pool) : m_NodesPool(pool), m_Size(0)
+    SharedAllocList(Allocator* pool) : m_NodesPool(pool), m_Size(0)
     {
         InitSentinel();
     }

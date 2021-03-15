@@ -3,7 +3,7 @@
 #include "SuperMeshInstance.h"
 #include "PagedObjPool.h"
 #include "Camera.h"
-#include "LightList.h"
+#include "SharedAllocList.h"
 #include <vector>
 #include <functional>
 #include <list>
@@ -250,20 +250,19 @@ public:
     MemoryTightOctree() {}
     struct AABBwithPayload
     {
-        AABBwithPayload() : lastGatherFrame(0), cullMask(0) { }
-        AABBwithPayload(AABB _aabb, payload_t pl) : lastGatherFrame(0), aabb(_aabb), payload(pl), cullMask(0) {  }
+        AABBwithPayload() : cullMask(0) { }
+        AABBwithPayload(AABB _aabb, payload_t pl) :  aabb(_aabb), payload(pl), cullMask(0) {  }
 
         AABB aabb;
         payload_t payload;
 
         //system vars
         uint8_t cullMask;
-        unsigned long long lastGatherFrame;
     };
     struct Node
     {
         AABB aabb;
-        std::list<AABBwithPayload> objs;
+        std::list<size_t> objs;
 
         Node* childs;
 
@@ -292,7 +291,7 @@ public:
         void InitializeChilds(NodesPool& nodesPool)
         {
             const float halfSide = aabb.Side() * 0.5f;
-            childs = new Node[8];//*nodesPool.Pop();
+            childs = *nodesPool.Pop();
 
             childs[000].aabb = AABB(aabb.m_Min, aabb.m_Min + glm::vec3(halfSide, halfSide, halfSide));
             childs[0 | Top_Child | 0].aabb = AABB(childs[000].aabb.m_Min + glm::vec3(0.0f, halfSide, 0.0f), childs[000].aabb.m_Max + glm::vec3(0.0f, halfSide, 0.0f));
@@ -329,7 +328,7 @@ public:
 
     };
 
-#define MAX_DEPTH 10
+#define MAX_DEPTH 7
 #define LEAF_THRESHOLD 2
     void Build(Node* nd, int depth)
     {
@@ -338,28 +337,28 @@ public:
     void Build()
     {
     }
-    void Propagate(Node* nd, AABBwithPayload aabbwp, int lvl)
+    void Propagate(Node* nd, size_t aabbwpIdx, int lvl)
     {
         if (lvl > MAX_DEPTH)
             return;
         
-        if (nd->objs.size() + 1 <= LEAF_THRESHOLD)
+        if (nd->objs.size() + 1 <= LEAF_THRESHOLD && !nd->childs) 
         {
-            nd->objs.push_back(aabbwp);
+            nd->objs.push_back(aabbwpIdx);
             return;
         }
         size_t indexes[8];
         size_t indexesSz = 0;
         if (!nd->childs)
         {
-            nd->objs.push_back(aabbwp);
+            nd->objs.push_back(aabbwpIdx);
 
             nd->InitializeChilds(m_NodesPool);
 
             auto it = nd->objs.begin();
             while ( it != nd->objs.end())
             {
-                AABBwithPayload& bv = *it;
+                AABBwithPayload& bv = m_AABBs[*it];
 
                 nd->CalcChildIndexes(bv.aabb, indexes, indexesSz);
  
@@ -368,7 +367,7 @@ public:
                     auto curr = it;
                     it++;
  
-                    Propagate(&nd->childs[indexes[0]], bv, lvl + 1);
+                    Propagate(&nd->childs[indexes[0]], *curr, lvl + 1);
 
                     nd->objs.erase(curr);
                     continue;
@@ -378,18 +377,19 @@ public:
                     uint8_t cullMask = 0;
                     for (size_t i = 0; i < indexesSz; i++)
                         cullMask = cullMask | (1 << indexes[i]);
-                    (*it).cullMask = cullMask;
+                    bv.cullMask = cullMask;
                 }
                 it++;
             }
         }
         else
         {
+            AABBwithPayload& aabbwp = m_AABBs[aabbwpIdx];
             nd->CalcChildIndexes(aabbwp.aabb, indexes, indexesSz);
 
             if (indexesSz == 1)
             {
-                Propagate(&nd->childs[indexes[0]], aabbwp, lvl + 1);
+                Propagate(&nd->childs[indexes[0]], aabbwpIdx, lvl + 1);
             }
             else
             {
@@ -398,32 +398,22 @@ public:
                     cullMask = cullMask | (1 << indexes[i]);
                 aabbwp.cullMask = cullMask;
 
-                nd->objs.push_back(aabbwp);
+                nd->objs.push_back(aabbwpIdx);
             }
         }
     }
     void Add(AABB sceneAABB, AABB aabb, payload_t pl)
     {
         AABBwithPayload aabbwp = { aabb, pl };
+        m_AABBs.push_back(aabbwp);
+
         if (!m_Root)
         {
             m_Root = new Node();
             m_Root->aabb = sceneAABB;
         }
 
-        Propagate(m_Root, aabbwp, 1);
-    }
-    AABBwithPayload& AccessAABBByIndexIndex(size_t i)
-    {
-        return m_AABBs[m_AABBIndexes[i]];
-    }
-
-    void FillIndexes()
-    {
-        m_AABBIndexes.clear();
-        m_AABBIndexes.resize(m_AABBs.size());
-        for (size_t i = 0; i < m_AABBIndexes.size(); i++)
-            m_AABBIndexes[i] = i;
+        Propagate(m_Root, m_AABBs.size() - 1, 1);
     }
 
     void GatherVisiblePayload(Node* node, Camera::Frustum& frustum, std::vector<payload_t>& payloads, int reqLvl, int lvl)
@@ -444,9 +434,13 @@ public:
             }
             //if (lvl == reqLvl)
             {
-                for (AABBwithPayload& aabbwp : node->objs) // check internal nodes end
+                for (size_t& aabbwpIdx : node->objs)
+                {
+                    AABBwithPayload& aabbwp = m_AABBs[aabbwpIdx];
+
                     if ((aabbwp.cullMask & cullMask) || !node->childs)
                         payloads.push_back(aabbwp.payload);
+                }
                 return;
             }
         }
@@ -503,7 +497,6 @@ private:
     typedef PagedObjPool<Node[8], 312> NodesPool;
     NodesPool m_NodesPool;
     std::vector<AABBwithPayload> m_AABBs;
-    std::vector<size_t> m_AABBIndexes;
     AABB m_AABB;
 };
 
@@ -512,38 +505,30 @@ class PerfWideOctree
 {
 public:
     PerfWideOctree() {}
+
+    struct Node;
+    typedef PagedObjPool<Node[8], 312> NodesPool;
+
     struct AABBwithPayload
     {
-        AABBwithPayload() : lastGatherFrame(-1), cullMask(0) { }
-        AABBwithPayload(AABB _aabb, payload_t pl) : lastGatherFrame(-1), aabb(_aabb), payload(pl), cullMask(0) {  }
+        AABBwithPayload() : lastGatherFrame(-1) { }
+        AABBwithPayload(AABB _aabb, payload_t pl) : lastGatherFrame(-1), aabb(_aabb), payload(pl) {  }
 
         AABB aabb;
         payload_t payload;
 
         //system vars
-        uint8_t cullMask;
         int64_t lastGatherFrame;
     };
     struct Node
     {
         AABB aabb;
-        //std::list<size_t> objs;
-        LightList<size_t> objs;
+        SharedAllocList<size_t> objs;
 
         Node* childs;
 
-        Node()
+        Node() : childs(nullptr)
         {
-            FillChildsNull();
-        }
-        Node(size_t begin, size_t end)
-        {
-            FillChildsNull();
-        }
-
-        void FillChildsNull()
-        {
-            childs = nullptr;
         }
 
         enum ChildTypeMask
@@ -552,9 +537,8 @@ public:
             Right_Child = 1 << 2,
             Front_Child = 1
         };
-        typedef PagedObjPool<Node[8], 312> NodesPool;
 
-        void InitializeChilds(NodesPool& nodesPool, LightList<size_t>::Allocator& listNodesPool)
+        void InitializeChilds(NodesPool& nodesPool, SharedAllocList<size_t>::Allocator& listNodesPool)
         {
             const float halfSide = aabb.Side() * 0.5f;
             childs = *nodesPool.Pop();
@@ -568,7 +552,7 @@ public:
             childs[0 | Top_Child | Front_Child].aabb = AABB(childs[000].aabb.m_Min + glm::vec3(0.0f, halfSide, halfSide), childs[000].aabb.m_Max + glm::vec3(0.0f, halfSide, halfSide));
             childs[Right_Child | Top_Child | 0].aabb = AABB(childs[000].aabb.m_Min + glm::vec3(halfSide, halfSide, 0.0f), childs[000].aabb.m_Max + glm::vec3(halfSide, halfSide, 0.0f));
             for (size_t i = 0; i < 8; i++)
-                childs[i].objs = LightList<size_t>(&listNodesPool);
+                childs[i].objs = SharedAllocList<size_t>(&listNodesPool);
         }
 
         bool CalcChildIndexes(const AABB& _aabb, size_t* childIndexes, size_t& indexesCount)
@@ -612,6 +596,7 @@ public:
             nd->objs.push_back(aabbwpIdx);
             return;
         }
+
         size_t indexes[8];
         size_t indexesSz = 0;
         if (!nd->childs)
@@ -647,7 +632,7 @@ public:
         if (!m_Root)
         {
             m_Root = new Node();
-            m_Root->objs = LightList<size_t>(&m_ListNodesPool);
+            m_Root->objs = SharedAllocList<size_t>(&m_ListNodesPool);
             m_Root->aabb = sceneAABB;
         }
         m_AABBs.push_back(aabbwp);
@@ -697,7 +682,6 @@ public:
         {
             for (size_t i = 0; i < 8; i++)
             {
-
                 if (currLevel == reqLevel && frustum.Test(node->childs[i].aabb))
                 {
                     aabbs.push_back(node->childs[i].aabb);
@@ -736,10 +720,10 @@ public:
     }
 private:
     Node* m_Root;
-    typedef PagedObjPool<Node[8], 312> NodesPool;
-    NodesPool m_NodesPool;
-    std::vector<AABBwithPayload> m_AABBs;
-    LightList<size_t>::Allocator m_ListNodesPool;
 
+    NodesPool m_NodesPool;
+    SharedAllocList<size_t>::Allocator m_ListNodesPool;
+
+    std::vector<AABBwithPayload> m_AABBs;
     AABB m_AABB;
 };

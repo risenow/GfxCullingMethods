@@ -20,13 +20,6 @@ public:
         }
         m_Pages.push_back(Pool<AllocData>(pageSz, [&](AllocData& obj) {obj.m_PageIndex = m_Pages.size() - 1; }));
         return &m_Pages.back().Pop()->m_Data;
-        /*if (m_Pages[m_CurrFreePage].Empty())
-        {
-            if (m_CurrFreePage == m_Pages.size() - 1)
-                m_Pages.push_back(Pool<AllocData>(pageSz, [&](AllocData& obj) {obj.m_PageIndex = m_CurrFreePage + 1; }));
-            m_CurrFreePage++;
-        }
-        return &m_Pages[m_CurrFreePage].Pop()->m_Data;*/
     }
     void Push(T* obj)
     {

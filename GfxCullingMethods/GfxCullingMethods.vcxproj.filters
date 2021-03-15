@@ -254,10 +254,13 @@
     <ClInclude Include="PagedObjPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LightList.h">
+    <ClInclude Include="OctreeFrustumVisibility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OctreeFrustumVisibility.h">
+    <ClInclude Include="SharedAllocList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PagedPoolSTDAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

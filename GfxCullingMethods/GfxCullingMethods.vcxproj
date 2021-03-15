@@ -199,7 +199,8 @@
     <ClInclude Include="helperutil.h" />
     <ClInclude Include="ImmediateRenderer.h" />
     <ClInclude Include="OctreeFrustumVisibility.h" />
-    <ClInclude Include="LightList.h" />
+    <ClInclude Include="PagedPoolSTDAllocator.h" />
+    <ClInclude Include="SharedAllocList.h" />
     <ClInclude Include="LinearFrustumVisibility.h" />
     <ClInclude Include="LinearStack.h" />
     <ClInclude Include="Log.h" />

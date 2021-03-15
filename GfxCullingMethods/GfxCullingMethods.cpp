@@ -18,8 +18,6 @@
 #include "DisplayAdaptersList.h"
 #include "ImmediateRenderer.h"
 #include "MicrosecondsTimer.h"
-#include "PagedObjPool.h"
-#include "LightList.h"
 #include "MicrosecondsTimer.h"
 #include "basicvsconstants.h"
 
@@ -180,7 +178,7 @@ int main()
     LinearFrustumVisibility referenceVisibility({});
 
     GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
-    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_BVHFrustum);
+    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_OctreeFrustum);
 
     AABB sceneAABB;
     std::vector<SuperMeshInstance*> tempMeshes;
