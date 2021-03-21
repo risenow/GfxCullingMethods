@@ -6,10 +6,10 @@ template<class T, int pageSz>
 class PagedObjPool
 {
 public:
-    
-    PagedObjPool() 
+    PagedObjPool(bool init = true)  // false for use in a field
     {
-        m_Pages.push_back(Pool<AllocData>(pageSz, [&](AllocData& obj) {obj.m_PageIndex = 0; }));
+        if (init)
+            m_Pages.push_back(Pool<AllocData>(pageSz, [&](AllocData& obj) {obj.m_PageIndex = 0; }));
     }
     T* Pop()
     {

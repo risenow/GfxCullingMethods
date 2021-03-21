@@ -8,7 +8,7 @@
 #include <functional>
 #include <list>
 
-//static octree
+//static linear memory octree
 /*template<class payload_t>
 class IndexBasedOctree
 {
@@ -18,8 +18,6 @@ public:
     {
         AABBwithPayload() : lastGatherFrame(0), chIndexesSz(0) { memset(chIndexes, 0, sizeof(chIndexes)); }
         AABBwithPayload(AABB _aabb, payload_t pl) : lastGatherFrame(0), chIndexesSz(0), aabb(_aabb), payload(pl) { memset(chIndexes, 0, sizeof(chIndexes)); }
-
-
 
         AABB aabb;
         payload_t payload;
@@ -320,13 +318,6 @@ public:
             return childs == nullptr;
         }
     };
-    struct TempChildIndexesCache
-    {
-        TempChildIndexesCache() : sz(0) {}
-        size_t indexes[8];
-        size_t sz;
-
-    };
 
 #define MAX_DEPTH 7
 #define LEAF_THRESHOLD 2
@@ -530,6 +521,10 @@ public:
         Node() : childs(nullptr)
         {
         }
+        Node(const AABB& _aabb, SharedAllocList<size_t>::Allocator& listAlloc) : aabb(_aabb), childs(nullptr)
+        {
+            objs = SharedAllocList<size_t>(&listAlloc);
+        }
 
         enum ChildTypeMask
         {
@@ -571,13 +566,6 @@ public:
         {
             return childs == nullptr;
         }
-    };
-    struct TempChildIndexesCache
-    {
-        TempChildIndexesCache() : sz(0) {}
-        size_t indexes[8];
-        size_t sz;
-
     };
 
 #define MAX_DEPTH 7
@@ -631,9 +619,8 @@ public:
         AABBwithPayload aabbwp = { aabb, pl };
         if (!m_Root)
         {
-            m_Root = new Node();
-            m_Root->objs = SharedAllocList<size_t>(&m_ListNodesPool);
-            m_Root->aabb = sceneAABB;
+            sceneAABB.ConvertToCube();
+            m_Root = new Node(sceneAABB, m_ListNodesPool);
         }
         m_AABBs.push_back(aabbwp);
 

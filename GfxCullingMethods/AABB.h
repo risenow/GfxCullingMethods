@@ -36,20 +36,10 @@ struct AABB
     };
     glm::vec3 GetPoint(int i) const
     {
-        const glm::vec3 metaOffset = m_Max - m_Min;
-        /*const glm::vec3 offsets[8] = {glm::vec3(),
-                                      glm::vec3(metaOffset.x, 0.0f, 0.0f),
-                                      glm::vec3(0.0f, metaOffset.y, 0.0f),
-                                      glm::vec3(0.0f, 0.0f, metaOffset.z), 
-                                      glm::vec3(metaOffset.x, metaOffset.y, 0.0f),
-                                      glm::vec3(metaOffset.x, 0.0f, metaOffset.z),
-                                      glm::vec3(0.0f, metaOffset.y, metaOffset.z), 
-                                      glm::vec3(metaOffset.x, metaOffset.y, metaOffset.z) };*/
-        //
-        float cx = (i & RightMask);
-        float cy = ((i & TopMask) >> 1);
-        float cz = ((i & FrontMask) >> 2);
-        return glm::vec3(m_Min.x + metaOffset.x * cx, m_Min.y + metaOffset.y * cy, m_Min.z + metaOffset.z * cz);
+        int cx = (i & RightMask);
+        int cy = ((i & TopMask) >> 1);
+        int cz = ((i & FrontMask) >> 2);
+        return glm::vec3(m_MinMax[cx].x, m_MinMax[cy].y, m_MinMax[cz].z);
     }
 
     bool IsValid() const
@@ -114,27 +104,26 @@ struct AABB
 
     glm::vec3 m_Centroid;
 
-    void ExtendMin(const glm::vec3& v)
+    inline void ExtendMin(const glm::vec3& v)
     {
         m_Min = glm::vec3(std::min(m_Min.x, v.x), std::min(m_Min.y, v.y), std::min(m_Min.z, v.z));;
     }
-    void ExtendMax(const glm::vec3& v)
+    inline void ExtendMax(const glm::vec3& v)
     {
         m_Max = glm::vec3(std::max(m_Max.x, v.x), std::max(m_Max.y, v.y), std::max(m_Max.z, v.z));
     }
-    void Extend(const glm::vec3& v)
+    inline void Extend(const glm::vec3& v)
     {
         ExtendMin(v);
         ExtendMax(v);
         m_Centroid = (m_Min + m_Max) * 0.5f;
     }
     
-    void Extend(const AABB& v)
+    inline void Extend(const AABB& v)
     {
         ExtendMin(v.m_Min);
         ExtendMax(v.m_Max);
-        //Extend(v.m_Min);
-        //Extend(v.m_Max);
+
         m_Centroid = (m_Min + m_Max) * 0.5f;
     }
 

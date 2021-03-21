@@ -178,7 +178,7 @@ int main()
     LinearFrustumVisibility referenceVisibility({});
 
     GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
-    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_OctreeFrustum);
+    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_BVHFrustum);
 
     AABB sceneAABB;
     std::vector<SuperMeshInstance*> tempMeshes;
@@ -206,6 +206,7 @@ int main()
         superViewport1.AddMesh(mesh);
     superViewport1.AddMesh(new SuperMeshInstance(mesh, glm::translate(glm::scale(glm::mat4x4(), RandomFromTo3(0.2f, 1.1f)), RandomFromTo3(-1000.0f, 1000.0f))), true, true);
     std::cout << estTimer.End() << std::endl;
+    exit(0);
 
     GraphicsViewport viewport2(BoundRect(Point2D(window.GetWidth() / 2, 0), window.GetWidth() / 2, window.GetHeight()));
     SuperViewport superViewport2(viewport2, camera2, ViewportVisibility_None);

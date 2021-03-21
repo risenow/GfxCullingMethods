@@ -96,7 +96,8 @@ public:
 
         return aabb;
     }
-#define BIN_COUNT 15
+    //16
+#define BIN_COUNT 8
     void Build(Node* node, AABB caabb) //caabb = centroids BV
     {
         assert(caabb.IsValid());
@@ -106,7 +107,7 @@ public:
 
         assert(end - begin >= 1);
 
-        if (end - begin == 1)
+        if (end - begin <= 4)
             return;
 
         Bin bins[BIN_COUNT];
@@ -161,7 +162,7 @@ public:
         double minCost = FLT_MAX;
         int rightCount = 0;
         temp = AABB();
-        for (int i = BIN_COUNT - 1; i >= 0; i--)
+        for (int i = BIN_COUNT - 1; i >= 0; i--) 
         {
             temp.Extend(bins[i].realBV);
             double rightArea = temp.Area();
@@ -174,7 +175,6 @@ public:
             }
         }
 
-        //check this precisely
         int j = end - 1;
         int i = begin;
         
