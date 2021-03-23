@@ -64,10 +64,22 @@ public:
 
     struct Frustum
     {
+        float CalcSolidAngle(const glm::mat4x4& m)
+        {
+            float tgAlpha = 1.0f / m[1][1];
+            float tgBeta = 1.0f / m[0][0];
+            float alpha = atan(tgAlpha);
+            float beta = atan(tgBeta);
+
+            return 4 * glm::asin(sin(alpha)*sin(beta));
+        }
+
         Frustum(const Camera& cam, bool inWorld = true) 
         {
             assert(inWorld);
             glm::mat4x4 m = cam.GetProjectionMatrix() * cam.GetViewMatrix();//glm::inverse(cam.GetViewMatrix());
+
+            solidAngle = CalcSolidAngle(m);
 
             planes[0] = Plane(glm::vec3(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0]), m[3][3] + m[3][0]); //LEFT
             planes[1] = Plane(glm::vec3(m[0][3] - m[0][0], m[1][3] - m[1][0], m[2][3] - m[2][0]), m[3][3] - m[3][0]); //RIGHT
@@ -76,6 +88,8 @@ public:
             planes[4] = Plane(glm::vec3(m[0][3] + m[0][2], m[1][3] + m[1][2], m[2][3] + m[2][2]), m[3][3] + m[3][2]); //NEAR
             planes[5] = Plane(glm::vec3(m[0][3] - m[0][2], m[1][3] - m[1][2], m[2][3] - m[2][2]), m[3][3] - m[3][2]); //FAR
         }
+
+        
 
         bool Contains(const glm::vec3& p)
         {
@@ -100,7 +114,7 @@ public:
             }
             return true;
         }
-
+        float solidAngle;
         Plane planes[6];
     };
 
@@ -108,6 +122,7 @@ public:
     glm::vec3 m_Eye;
     bool m_UseAngles;
 private:
+
     glm::vec3 m_ViewVec;
     glm::vec3 m_LeftVec;
     glm::vec3 m_Position;

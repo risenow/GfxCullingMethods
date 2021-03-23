@@ -45,7 +45,7 @@ Camera CreateInitialCamera(float aspect)
     const glm::vec3 position = glm::vec3(0.0f, .0f, 0.0f);
     const glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     Camera camera = Camera(position, rotation);
-    camera.SetProjection(45.0f, aspect, 0.1f, 100000.0f);
+    camera.SetProjection(75.5f, aspect, 0.1f, 100000.0f);//(90.5f, aspect, 0.1f, 100000.0f);
 
     return camera;
 }
@@ -178,7 +178,7 @@ int main()
     LinearFrustumVisibility referenceVisibility({});
 
     GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
-    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_BVHFrustum);
+    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_OctreeFrustum);
 
     AABB sceneAABB;
     std::vector<SuperMeshInstance*> tempMeshes;
@@ -206,7 +206,7 @@ int main()
         superViewport1.AddMesh(mesh);
     superViewport1.AddMesh(new SuperMeshInstance(mesh, glm::translate(glm::scale(glm::mat4x4(), RandomFromTo3(0.2f, 1.1f)), RandomFromTo3(-1000.0f, 1000.0f))), true, true);
     std::cout << estTimer.End() << std::endl;
-    exit(0);
+    //exit(0);
 
     GraphicsViewport viewport2(BoundRect(Point2D(window.GetWidth() / 2, 0), window.GetWidth() / 2, window.GetHeight()));
     SuperViewport superViewport2(viewport2, camera2, ViewportVisibility_None);

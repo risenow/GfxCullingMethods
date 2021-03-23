@@ -569,7 +569,7 @@ public:
     };
 
 #define MAX_DEPTH 7
-#define LEAF_THRESHOLD 1
+#define LEAF_THRESHOLD 2
     void Build(Node* nd, int depth)
     {
 
@@ -579,7 +579,7 @@ public:
     }
     void Propagate(Node* nd, size_t aabbwpIdx, int lvl)
     {
-        if (!nd->childs && (nd->objs.size() + 1 <= LEAF_THRESHOLD || lvl == MAX_DEPTH))
+        if (!nd->childs && (nd->objs.size() + 1 < LEAF_THRESHOLD || lvl == MAX_DEPTH))
         {
             nd->objs.push_back(aabbwpIdx);
             return;
