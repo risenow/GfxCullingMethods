@@ -9,16 +9,20 @@ class Room;
 class Portal
 {
 public:
-    void GatherVisibleObject(Camera::Frustum& fr, std::vector<SuperMeshInstance*>& meshInstances);
+    Portal();
+    bool Valid();
+    void GatherVisibleObject(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Room* from, std::vector<SuperMeshInstance*>& meshInstances);
+
+    AABB GetAABB();
 private:
-    std::vector<Room*> m_Rooms;
+    Room* m_Rooms[2];
     AABB m_AABB;
 };
 
 class Room
 {
 public:
-    void GatherVisibleObjects(Camera::Frustum& fr, std::vector<SuperMeshInstance*>& meshInstances);
+    void GatherVisibleObjects(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Portal* from, std::vector<SuperMeshInstance*>& meshInstances);
 private:
     std::vector<Portal*> m_Portals;
     BVHFrustumVisibility m_BVHVis;

@@ -73,7 +73,7 @@ public:
 
             return 4 * glm::asin(sin(alpha)*sin(beta));
         }
-
+        Frustum() : solidAngle(0.0f) {}
         Frustum(const Camera& cam, bool inWorld = true) 
         {
             assert(inWorld);
