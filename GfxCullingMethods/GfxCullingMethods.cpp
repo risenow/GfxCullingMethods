@@ -18,7 +18,7 @@
 #include "DisplayAdaptersList.h"
 #include "ImmediateRenderer.h"
 #include "MicrosecondsTimer.h"
-#include "MicrosecondsTimer.h"
+#include "Portal.h"
 #include "basicvsconstants.h"
 
 float Random01()
@@ -169,6 +169,14 @@ int main()
     camera1.m_UseAngles = true;
     camera2.m_UseAngles = true;
 
+    PortalSystem::Room* room = new PortalSystem::Room();
+
+    LoPoApproxGeom portalApproxGeom;
+    LoPoApproxGeom::GenXYAlignedQuad(portalApproxGeom, glm::vec3(-2.0f, -2.0f, 4.0f), 100.0f, 100.0f);
+    PortalSystem::Portal* portal = new PortalSystem::Portal(portalApproxGeom, room, nullptr);
+    
+    room->AddPortal(portal);
+
     SuperMesh* mesh = SuperMesh::FromFile(device, textureCollection, "Data/SchoolGirlOBJ/D0208059.obj");
     std::vector<SuperMesh*> subMeshes;
     subMeshes.resize(mesh->GetSubMeshesCount());
@@ -183,7 +191,7 @@ int main()
     AABB sceneAABB;
     std::vector<SuperMeshInstance*> tempMeshes;
 
-    for (size_t i = 0; i < 1600; i++) 
+    for (size_t i = 0; i < 800; i++) 
     {   
         glm::vec3 pos = RandomFromTo3(-2000.0f, 2000.0f);
         glm::mat4x4 transform = glm::translate(glm::mat4x4(), pos);
@@ -203,8 +211,11 @@ int main()
     MicrosecondsTimer estTimer;
     estTimer.Begin();
     for (SuperMeshInstance* mesh : tempMeshes)
-        superViewport1.AddMesh(mesh);
-    superViewport1.AddMesh(new SuperMeshInstance(mesh, glm::translate(glm::scale(glm::mat4x4(), RandomFromTo3(0.2f, 1.1f)), RandomFromTo3(-1000.0f, 1000.0f))), true, true);
+        room->AddMesh(mesh);
+
+    room->AddMesh(tempMeshes[0], true);
+        //superViewport1.AddMesh(mesh);
+    //superViewport1.AddMesh(new SuperMeshInstance(mesh, glm::translate(glm::scale(glm::mat4x4(), RandomFromTo3(0.2f, 1.1f)), RandomFromTo3(-1000.0f, 1000.0f))), true, true);
     std::cout << estTimer.End() << std::endl;
     //exit(0);
 
@@ -214,7 +225,9 @@ int main()
     SuperMeshInstance* pawnInstance = new SuperMeshInstance(GetPawnPlaceholderMesh(device, textureCollection), CreatePawnTranform(camera1));
     superViewport2.AddMesh(pawnInstance);
 
-    superViewport1.ShareVisibility({ &superViewport2 });
+    room->ShareVis(superViewport2);
+    room->ShareVis(superViewport1);
+    //superViewport1.ShareVisibility({ &superViewport2 });
 
     MouseKeyboardCameraController cameraController(camera1);
 
@@ -222,6 +235,8 @@ int main()
 
     short visTypeIndex = (short)ViewportVisibility_LinearFrustum;
     long long visAlterLastFrame = 0;
+    std::vector<SuperMeshInstance*> visObjs;
+    visObjs.reserve(tempMeshes.size());
 
     while (!window.IsClosed())
     {
@@ -232,7 +247,25 @@ int main()
 
         pawnInstance->SetTransform(CreatePawnTranform(camera1));
 
+        visObjs.clear();
+        Camera::Frustum camFr = Camera::Frustum(camera1);
+        Camera::Frustum cutFr;
+        PortalSystem::GenPortalFrustum(camFr, cutFr, camera1.GetPosition(), camera1.GetRightVec(), camera1.GetRightVec(), portal->GetAABB());
+        portal->GatherVisibleObjects(device, camera1, camFr, nullptr, visObjs);
+
         stats = superViewport1.Render(device, colorTarget, depthTarget);
+
+        std::cout << camera1.GetRightVec().x << " " << camera1.GetRightVec().z << "\n";
+
+        Plane leftPlane = cutFr.planes[0];
+        float cY = 0.0f;
+        float cZ = 4.0f;
+        glm::vec3 leftP = glm::vec3((-leftPlane.n.y * cY - leftPlane.n.z * cZ - leftPlane.d) / leftPlane.n.x, cY, cZ);
+        immediateRenderer.Line(camera1.GetPosition() - glm::vec3(0.0, 10.0, 0.0), leftP, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        Plane rightPlane = cutFr.planes[1];
+        glm::vec3 rightP = glm::vec3((-rightPlane.n.y * cY - rightPlane.n.z * cZ - rightPlane.d) / rightPlane.n.x, cY, cZ);
+        immediateRenderer.Line(camera1.GetPosition()-glm::vec3(0.0, 10.0, 0.0), rightP, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        immediateRenderer.WireframeAABB(portal->GetAABB(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
         immediateRenderer.OnFrameEnd(device, camera1, colorTarget, depthTarget);
 
         superViewport2.Render(device, colorTarget, depthTarget, false);

@@ -167,6 +167,7 @@
     <ClCompile Include="MouseKeyboardCameraController.cpp" />
     <ClCompile Include="multisampleutils.cpp" />
     <ClCompile Include="pathutils.cpp" />
+    <ClCompile Include="Portal.cpp" />
     <ClCompile Include="strutils.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="timeutils.cpp" />
@@ -198,8 +199,10 @@
     <ClInclude Include="GraphicsViewport.h" />
     <ClInclude Include="helperutil.h" />
     <ClInclude Include="ImmediateRenderer.h" />
+    <ClInclude Include="LoPoApproxGeom.h" />
     <ClInclude Include="OctreeFrustumVisibility.h" />
     <ClInclude Include="PagedPoolSTDAllocator.h" />
+    <ClInclude Include="Portal.h" />
     <ClInclude Include="SharedAllocList.h" />
     <ClInclude Include="LinearFrustumVisibility.h" />
     <ClInclude Include="LinearStack.h" />

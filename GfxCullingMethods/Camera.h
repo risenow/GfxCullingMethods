@@ -83,8 +83,8 @@ public:
 
             planes[0] = Plane(glm::vec3(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0]), m[3][3] + m[3][0]); //LEFT
             planes[1] = Plane(glm::vec3(m[0][3] - m[0][0], m[1][3] - m[1][0], m[2][3] - m[2][0]), m[3][3] - m[3][0]); //RIGHT
-            planes[2] = Plane(glm::vec3(m[0][3] - m[0][1], m[1][3] - m[1][1], m[2][3] - m[2][1]), m[3][3] - m[3][1]); //BOTTOM
-            planes[3] = Plane(glm::vec3(m[0][3] + m[0][1], m[1][3] + m[1][1], m[2][3] + m[2][1]), m[3][3] + m[3][1]); //TOP
+            planes[2] = Plane(glm::vec3(m[0][3] - m[0][1], m[1][3] - m[1][1], m[2][3] - m[2][1]), m[3][3] - m[3][1]); //top
+            planes[3] = Plane(glm::vec3(m[0][3] + m[0][1], m[1][3] + m[1][1], m[2][3] + m[2][1]), m[3][3] + m[3][1]); //bottom
             planes[4] = Plane(glm::vec3(m[0][3] + m[0][2], m[1][3] + m[1][2], m[2][3] + m[2][2]), m[3][3] + m[3][2]); //NEAR
             planes[5] = Plane(glm::vec3(m[0][3] - m[0][2], m[1][3] - m[1][2], m[2][3] - m[2][2]), m[3][3] - m[3][2]); //FAR
         }
@@ -118,6 +118,14 @@ public:
         Plane planes[6];
     };
 
+    glm::vec3 GetRightVec()
+    {
+        return m_LeftVec; // lol, fix it
+    }
+    glm::vec3 GetTopVec()
+    {
+        return m_TopVec;
+    }
     //test
     glm::vec3 m_Eye;
     bool m_UseAngles;
@@ -125,6 +133,7 @@ private:
 
     glm::vec3 m_ViewVec;
     glm::vec3 m_LeftVec;
+    glm::vec3 m_TopVec;
     glm::vec3 m_Position;
     glm::vec3 m_Rotation;
 

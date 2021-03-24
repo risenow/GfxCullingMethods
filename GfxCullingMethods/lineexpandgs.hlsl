@@ -14,7 +14,7 @@ struct GSVertex
 [maxvertexcount(5)]
 void GSEntry(line Vertex gin[2], inout TriangleStream<GSVertex> triStream)
 {
-    const float width = 10.5f;
+    const float width = 0.5f;
     float3 temp1 = (gin[0].vpos.xyz - gin[1].vpos.xyz);
     float3 temp2 = gin[0].vpos.xyz;
     float3 scaledSideVec = normalize(cross(temp1, temp2)) * width;//float3(0.1, 0.1, 0.1);//

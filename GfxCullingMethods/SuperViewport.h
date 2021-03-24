@@ -18,9 +18,15 @@ enum ViewportVisibility
     ViewportVisibility_None
 };
 
+namespace PortalSystem
+{
+    class Room;
+};
+
 class SuperViewport
 {
 public:
+    friend class PortalSystem::Room;
     SuperViewport(const GraphicsViewport& viewport, Camera& camera, ViewportVisibility visibility) : m_Viewport(viewport), m_Camera(camera)
     {
         switch (visibility)

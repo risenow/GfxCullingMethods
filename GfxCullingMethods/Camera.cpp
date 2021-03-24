@@ -69,6 +69,7 @@ void Camera::UpdateViewProjectionMatrix()
 
     glm::mat4x4 temp = glm::transpose(m_ViewMatrix);
     m_LeftVec = temp[0];
+    m_TopVec = temp[1];
     m_ViewVec = temp[2];
 
     glm::vec2 projFactors = GetProjectionFactors();

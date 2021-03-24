@@ -32,6 +32,24 @@ public:
 
         visibleMeshes = m_LastVisibleMeshes;
     }
+    void GatherFrustum(GraphicsDevice& device, Camera::Frustum& fr, std::vector<SuperMeshInstance*>& visibleMeshes)
+    {
+        if (m_LastUpdatedFrameIndex == device.GetFrameIndex())
+        {
+            visibleMeshes = m_LastVisibleMeshes;
+            return;
+        }
+        m_LastUpdatedFrameIndex = device.GetFrameIndex();
+
+        m_LastVisibleMeshes.clear();
+        m_LastVisibleMeshes.reserve(m_BVH.GetBVCount());
+
+        Camera::Frustum frustum = fr;
+
+        m_BVH.GatherVisiblePayload(frustum, m_LastVisibleMeshes);
+
+        visibleMeshes = m_LastVisibleMeshes;
+    }
     virtual void AddMeshes(const std::vector<SuperMeshInstance*>& meshes, bool rebuild = false) override final
     {
         for (SuperMeshInstance* mesh : meshes)
