@@ -1,7 +1,7 @@
-2[TIME:256] Adapters enumerated:
-[TIME:256] Adapter index: 0
-[TIME:256] Description: NVIDIA GeForce GTX 1650 Ti
-[TIME:256] 
-[TIME:256] Adapter index: 1
-[TIME:256] Description: Microsoft Basic Render Driver
-[TIME:256] 
+2[TIME:203] Adapters enumerated:
+[TIME:203] Adapter index: 0
+[TIME:203] Description: NVIDIA GeForce GTX 1650 Ti
+[TIME:203] 
+[TIME:203] Adapter index: 1
+[TIME:203] Description: Microsoft Basic Render Driver
+[TIME:203] 

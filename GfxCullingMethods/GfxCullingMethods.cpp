@@ -250,7 +250,10 @@ int main()
         visObjs.clear();
         Camera::Frustum camFr = Camera::Frustum(camera1);
         Camera::Frustum cutFr;
-        PortalSystem::GenPortalFrustum(camFr, cutFr, camera1.GetPosition(), camera1.GetRightVec(), camera1.GetRightVec(), portal->GetAABB());
+        glm::vec3 tp;
+        glm::vec3 rt;
+        glm::vec3 psCamPos = glm::vec3(0.0, 300.0, -400.0);
+        PortalSystem::GenPortalFrustum(camFr, cutFr, psCamPos, camera1.GetRightVec(), camera1.GetRightVec(), portal->GetAABB(), rt, tp);
         portal->GatherVisibleObjects(device, camera1, camFr, nullptr, visObjs);
 
         stats = superViewport1.Render(device, colorTarget, depthTarget);
@@ -260,11 +263,16 @@ int main()
         Plane leftPlane = cutFr.planes[0];
         float cY = 0.0f;
         float cZ = 4.0f;
+        tp = glm::normalize(tp);
+        rt = glm::normalize(rt);
         glm::vec3 leftP = glm::vec3((-leftPlane.n.y * cY - leftPlane.n.z * cZ - leftPlane.d) / leftPlane.n.x, cY, cZ);
-        immediateRenderer.Line(camera1.GetPosition() - glm::vec3(0.0, 10.0, 0.0), leftP, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), leftP, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
         Plane rightPlane = cutFr.planes[1];
         glm::vec3 rightP = glm::vec3((-rightPlane.n.y * cY - rightPlane.n.z * cZ - rightPlane.d) / rightPlane.n.x, cY, cZ);
-        immediateRenderer.Line(camera1.GetPosition()-glm::vec3(0.0, 10.0, 0.0), rightP, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        immediateRenderer.Line(psCamPos-glm::vec3(0.0, 10.0, 0.0), rightP, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), psCamPos - glm::vec3(0.0, 10.0, 0.0) + rt * 8.0f, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f));
+        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), psCamPos - glm::vec3(0.0, 10.0, 0.0) + tp * 8.0f, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f));
+        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), portal->GetAABB().m_Centroid, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f));
         immediateRenderer.WireframeAABB(portal->GetAABB(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
         immediateRenderer.OnFrameEnd(device, camera1, colorTarget, depthTarget);
 

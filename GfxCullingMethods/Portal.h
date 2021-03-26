@@ -9,7 +9,7 @@
 
 namespace PortalSystem
 {
-    void GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal);//shouldnt be there
+    void GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal, glm::vec3& rt, glm::vec3& tp);//shouldnt be there
     class Room;
     class Portal
     {
