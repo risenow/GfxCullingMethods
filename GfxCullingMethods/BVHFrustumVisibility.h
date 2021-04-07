@@ -32,7 +32,7 @@ public:
 
         visibleMeshes = m_LastVisibleMeshes;
     }
-    void GatherFrustum(GraphicsDevice& device, Camera::Frustum& fr, std::vector<SuperMeshInstance*>& visibleMeshes)
+    void GatherFrustum(GraphicsDevice& device, const glm::vec3& camPos, Camera::Frustum& fr, std::vector<SuperMeshInstance*>& visibleMeshes) override final
     {
         if (m_LastUpdatedFrameIndex == device.GetFrameIndex())
         {
@@ -87,7 +87,21 @@ public:
     {
         return m_BVH;
     } 
+
+    void ReleaseGPUData()
+    {
+        std::vector<SuperMeshInstance*> meshes;
+        m_BVH.GatherAllPayload(meshes);
+
+        for (SuperMeshInstance* mesh : meshes)
+            delete mesh;
+    }
 private:
+    void GatherAll(std::vector<SuperMeshInstance*>& meshes)
+    {
+        m_BVH.GatherAllPayload(meshes);
+    }
+
     MeshBVH m_BVH;
     std::vector<SuperMeshInstance*> m_LastVisibleMeshes;
     AABB m_CAABB;

@@ -18,7 +18,7 @@ glm::vec3 GetRow3D(const glm::mat4x4& m, size_t i)
 
 glm::mat4x4 ViewIdentity()
 {
-    glm::mat4x4 m;
+    glm::mat4x4 m = glm::identity<glm::mat4x4>();
     return m;
 }
 

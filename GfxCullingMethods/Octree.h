@@ -567,9 +567,9 @@ public:
             return childs == nullptr;
         }
     };
-
+    
 #define MAX_DEPTH 7
-#define LEAF_THRESHOLD 2
+#define LEAF_THRESHOLD 1
     void Build(Node* nd, int depth)
     {
 
@@ -608,6 +608,7 @@ public:
         }
         else
         {
+            //get indexes of childs intersected by the inserted object
             nd->CalcChildIndexes(m_AABBs[aabbwpIdx].aabb, indexes, indexesSz);
 
             for (size_t i = 0; i < indexesSz; i++)

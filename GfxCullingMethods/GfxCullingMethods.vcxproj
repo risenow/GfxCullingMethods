@@ -35,7 +35,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -90,7 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>CPU_SIDE_CODE;NOMINMAX;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DemoScene1Generate.cpp" />
     <ClCompile Include="DisplayAdaptersList.cpp" />
     <ClCompile Include="dxerrorcodesinterpreteutil.cpp" />
     <ClCompile Include="GfxCullingMethods.cpp" />
@@ -168,6 +169,7 @@
     <ClCompile Include="multisampleutils.cpp" />
     <ClCompile Include="pathutils.cpp" />
     <ClCompile Include="Portal.cpp" />
+    <ClCompile Include="randomutils.cpp" />
     <ClCompile Include="strutils.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="timeutils.cpp" />
@@ -184,6 +186,7 @@
     <ClInclude Include="BVHFrustumVisibility.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ConstantsPreprocessing.h" />
+    <ClInclude Include="DemoScene1Generate.h" />
     <ClInclude Include="DisplayAdaptersList.h" />
     <ClInclude Include="dxerrorcodesinterpreteutil.h" />
     <ClInclude Include="dxlogicsafety.h" />
@@ -203,6 +206,9 @@
     <ClInclude Include="OctreeFrustumVisibility.h" />
     <ClInclude Include="PagedPoolSTDAllocator.h" />
     <ClInclude Include="Portal.h" />
+    <ClInclude Include="randomutils.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="serializeutils.h" />
     <ClInclude Include="SharedAllocList.h" />
     <ClInclude Include="LinearFrustumVisibility.h" />
     <ClInclude Include="LinearStack.h" />

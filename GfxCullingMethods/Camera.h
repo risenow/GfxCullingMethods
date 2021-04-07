@@ -27,8 +27,8 @@ public:
         static const glm::vec3 xAxis = glm::vec3(1.0f, 0.0f, 0.0f);
         static const glm::vec3 yAxis = glm::vec3(0.0f, 1.0f, 0.0f);
         static const glm::vec3 zAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-
-        glm::mat4x4 transform = glm::rotate(glm::mat4x4(), m_Rotation.x, xAxis);
+ 
+        glm::mat4x4 transform = glm::rotate(glm::identity<glm::mat4x4>(), m_Rotation.x, xAxis);
         transform = glm::rotate(transform, m_Rotation.y, yAxis);
     }
     glm::vec3 m_Rotation;
@@ -118,6 +118,10 @@ public:
         Plane planes[6];
     };
 
+    glm::vec3 GetFrontVec()
+    {
+        return m_ViewVec;
+    }
     glm::vec3 GetRightVec()
     {
         return m_LeftVec; // lol, fix it

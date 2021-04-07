@@ -39,7 +39,23 @@ public:
         GetVertexShader(device).ReleaseGPUData();
         GetPixelShader(device).ReleaseGPUData();
     }
+    static void FromVertexData(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, VertexData& vertexData, const GraphicsShader& vertexShader, const GraphicsShader& pixelShader, Texture2D* diffuse, Mesh& mesh)
+    {
+        Mesh* currMesh = &mesh;
 
+        VertexFormat vertexFormat = vertexData.GetVertexFormat();
+        currMesh->m_VertexBuffer = VertexBuffer(device, vertexData);
+        currMesh->m_VertexShader = GetVertexShader(device);
+        currMesh->m_PixelShader = GetPixelShader(device);
+        currMesh->m_InputLayout = GraphicsInputLayout(device, vertexFormat, currMesh->m_VertexShader);
+        currMesh->m_VertexCount = vertexData.GetNumVertexes();
+        BasicVSConsts temp;
+        currMesh->m_ConstantsBuffer = GraphicsConstantsBuffer<BasicVSConsts>(device, temp);
+        assert(currMesh->m_ConstantsBuffer.GetBuffer());
+
+        Texture2D* diff = diffuse;
+        currMesh->m_Diffuse = diff != nullptr ? diff : textureCollection.GetWhiteTexture();
+    }
     static void LoadFromFile(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, const std::string& file, std::vector<Mesh*>& meshes, AABB& superAABB)
     {
         std::string path = ExcludeFileFromPath(file);
@@ -138,7 +154,7 @@ public:
         }
     }
         
-    RenderStatistics Render(GraphicsDevice& device, Camera& camera, const glm::mat4x4& modelMatrix = glm::mat4x4())
+    RenderStatistics Render(GraphicsDevice& device, Camera& camera, const glm::mat4x4& modelMatrix = glm::identity<glm::mat4x4>())
     {
         m_VertexShader.Bind(device);
         m_PixelShader.Bind(device);

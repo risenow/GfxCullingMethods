@@ -6,7 +6,10 @@ class LinearFrustumVisibility : public Visibility
 public:
     LinearFrustumVisibility(const std::vector<SuperMeshInstance*>& meshes) : m_Meshes(meshes), m_LastUpdatedFrameIndex(1)
     {}
-
+    virtual void GatherFrustum(GraphicsDevice& device, const glm::vec3& camPos, Camera::Frustum& fr, std::vector<SuperMeshInstance*>& visibleMeshes) override final
+    {
+        assert(false);//unimplemented
+    }
     virtual void Gather(GraphicsDevice& device, Camera& cam, std::vector<SuperMeshInstance*>& visibleMeshes) override final // to fix excess vector copy
     {
         if (m_LastUpdatedFrameIndex == device.GetFrameIndex())

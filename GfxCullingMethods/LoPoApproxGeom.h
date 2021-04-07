@@ -20,8 +20,15 @@ public:
 
     bool IntersectSeg(const glm::vec3& origin, const glm::vec3& dir)
     {
-        glm::vec3 p;
-        return glm::intersectLineTriangle(origin, dir, m_Verts[0], m_Verts[1], m_Verts[2], p);
+        glm::vec2 p;
+        float dist = 0.0f;
+        bool intersect = glm::intersectRayTriangle(origin, dir, m_Verts[0], m_Verts[1], m_Verts[2], p, dist);
+        float len = glm::length(dir);
+
+        if (intersect)
+            std::cout << dist << " " << len << " " << intersect << std::endl;
+
+        return intersect && (dist <= len && dist >= 0.0f);
     }
 
     glm::vec3& operator[](size_t i)

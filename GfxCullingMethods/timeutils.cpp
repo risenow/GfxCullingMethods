@@ -25,7 +25,7 @@ long long GetPerfomanceCounterMicroseconds()
 {
     LARGE_INTEGER perf;
     QueryPerformanceCounter(&perf);
-    return long long(perf.QuadPart * GetPerfCounterToMicrosecondsMultiplyCoef());
+    return (long long)(perf.QuadPart * GetPerfCounterToMicrosecondsMultiplyCoef());
 }
 
 HighResolutionFormattedTime GetFormattedTimeForPerfomanceCounterMicrosecons(long long microseconds)

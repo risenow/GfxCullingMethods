@@ -3,49 +3,53 @@
 #include "AABB.h"
 #include "SuperMeshInstance.h"
 #include "BVHFrustumVisibility.h"
+#include "OctreeFrustumVisibility.h"
 #include "Camera.h"
 #include "LoPoApproxGeom.h"
-#include "SuperViewport.h"
 
 namespace PortalSystem
 {
-    void GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal, glm::vec3& rt, glm::vec3& tp);//shouldnt be there
+    void GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal);
+
     class Room;
     class Portal
     {
     public:
         Portal();
-        Portal(const LoPoApproxGeom& approxGeom, Room* room1, Room* room2)
-        {
-            m_Rooms[0] = room1;
-            m_Rooms[1] = room2;
+        Portal(const LoPoApproxGeom& approxGeom, Room* room1, Room* room2);
 
-            m_PortalGeom = approxGeom;
-        }
+        Room* GetTransition(Room* from);
 
         bool Valid();
-        void GatherVisibleObjects(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Room* from, std::vector<SuperMeshInstance*>& meshInstances);
+        void GatherVisibleObjects(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Room* from, std::vector<std::vector<SuperMeshInstance*>>& meshInstancesLists, size_t meshInstsListIndex = 0);
         bool ExactCheckSegIntersection(const glm::vec3& orig, const glm::vec3& dir);
         AABB GetAABB();
     private:
         Room* m_Rooms[2];
-        //AABB m_AABB;
         LoPoApproxGeom m_PortalGeom;
     };
 
     class Room
     {
     public:
-        Room();
-        void GatherVisibleObjects(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Portal* from, std::vector<SuperMeshInstance*>& meshInstances);
-        void AddMesh(SuperMeshInstance* mesh, bool rebuildVis = false);
-        void AddPortal(Portal* portal);
-        void ShareVis(SuperViewport& vp)
+        struct DirectedPortal
         {
-            vp.m_Visibility = &m_BVHVis;
-        }
+            Portal* portal;
+            glm::vec3 dir;
+        };
+
+        Room();
+        void GatherVisibleObjects(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Portal* from, std::vector<std::vector<SuperMeshInstance*>>& meshInstancesLists, size_t meshInstsListIndex = 0);
+        void AddMesh(SuperMeshInstance* mesh, bool applyVis = true, bool rebuildVis = false);
+        void AddPortal(Portal* portal, const glm::vec3& dir );
+
+        Room* RoomTransition(const glm::vec3& prevCamPos, const glm::vec3& camPos);
+
+        void ReleaseGPUData();
     private:
-        std::vector<Portal*> m_Portals;
+        std::vector<DirectedPortal> m_Portals;
+        
+        std::vector<SuperMeshInstance*> m_Meshes; //additional geometry not managed by visibility systems
         BVHFrustumVisibility m_BVHVis;
     };
 }

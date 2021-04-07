@@ -149,7 +149,7 @@ void GraphicsSwapChain::FillSwapChainDesc(const Window& window, DXGI_SWAP_CHAIN_
     desc.SampleDesc = sampleDesc;
 
     desc.BufferCount = 1;
-    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_UNORDERED_ACCESS;
+    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;// | DXGI_USAGE_UNORDERED_ACCESS;
 
     desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
     desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;

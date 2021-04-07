@@ -107,7 +107,7 @@ public:
 
         assert(end - begin >= 1);
 
-        if (end - begin <= 4)
+        if (end - begin <= 1)
             return;
 
         Bin bins[BIN_COUNT];
@@ -245,7 +245,11 @@ public:
             node->childs[1] = nullptr;
 
     }
-    
+    void GatherAllPayload(std::vector<payload_t>& payloads)
+    {
+        for (AABBwithPayload& aabbwp : m_AABBs)
+            payloads.push_back(aabbwp.payload);
+    }
     void GatherVisiblePayload(Node* node, Camera::Frustum& frustum, std::vector<payload_t>& payloads, int lvl)
     {
         if (frustum.Test(node->aabb))

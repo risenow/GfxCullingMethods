@@ -3,7 +3,7 @@
 
 using namespace PortalSystem;
 
-void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal, glm::vec3& rt, glm::vec3& tp)
+void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal)
 {
     int maxXIndex = -1; float maxXScore = -FLT_MAX;
     int maxYIndex = -1; float maxYScore = -FLT_MAX;
@@ -14,14 +14,11 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
     glm::vec3 right = -glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::vec3 top = glm::cross(front, right);
 
-    rt = right;
-    tp = top;
-
     for (size_t i = 0; i < 8; i++)
     {
         glm::vec3 p = portal.GetPoint(i);
-        float xScore = glm::dot(p, right);//prevFr.planes[0].Test(p);
-        float yScore = glm::dot(p, top);//prevFr.planes[3].Test(p);
+        float xScore = glm::dot(p, right);
+        float yScore = glm::dot(p, top);
 
         if (xScore > maxXScore)
         {
@@ -44,30 +41,22 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
             minYScore = yScore;
         }
     }
-    glm::vec3 minXP = portal.GetPoint(minXIndex);//portal.m_Max;//m_Min;//portal.GetPoint(minXIndex);
-    glm::vec3 maxXP = portal.GetPoint(maxXIndex);//portal.m_Min;//m_Max;//portal.GetPoint(maxXIndex);
-    glm::vec3 minYP = portal.GetPoint(minYIndex);//portal.m_Min;//portal.GetPoint(minYIndex);
-    glm::vec3 maxYP = portal.GetPoint(maxYIndex);//portal.m_Max;//portal.GetPoint(maxYIndex);
+    glm::vec3 minXP = portal.GetPoint(minXIndex);
+    glm::vec3 maxXP = portal.GetPoint(maxXIndex);
+    glm::vec3 minYP = portal.GetPoint(minYIndex);
+    glm::vec3 maxYP = portal.GetPoint(maxYIndex);
 
-    glm::vec3 rightVec = right; //glm::normalize(prevFr.planes[0].n);
-    glm::vec3 topVec = top;//glm::normalize(prevFr.planes[3].n);
+    glm::vec3 rightVec = right;
+    glm::vec3 topVec = top;
     glm::vec3 n;
 
     //left plane
     n = glm::cross(minXP - camPos, glm::vec3(0.0f, 1.0f, 0.0f));
-    /*if (glm::dot(n, rightVec) > 0.0f)
-        fr.planes[0].n = n;
-    else
-        fr.planes[0].n = -n;*/
     fr.planes[0].n = -n;
     fr.planes[0].d = -glm::dot(fr.planes[0].n, minXP);
 
     //right plane
     n = glm::cross(maxXP - camPos, glm::vec3(0.0f, 1.0f, 0.0f));
-    /*if (glm::dot(n, rightVec) > 0.0f)
-        fr.planes[1].n = -n;
-    else
-        fr.planes[1].n = n;*///-n;
     fr.planes[1].n = n;
     fr.planes[1].d = -glm::dot(fr.planes[1].n, maxXP);
 
@@ -101,8 +90,8 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
     glm::vec3 rightPlN_XZ = glm::normalize(ProjectVecOnPlane(fr.planes[1].n, middleQuasiXZPlane.n));
     glm::vec3 prevRightPlN_XZ = glm::normalize(ProjectVecOnPlane(prevFr.planes[1].n, middleQuasiXZPlane.n));
     float maxAngle = acos(glm::dot(leftPlN_XZ, rightPlN_XZ));
-    glm::vec3 c = -glm::cross(prevLeftPlN_XZ, leftPlN_XZ);//glm::cross(leftPlN_XZ, prevLeftPlN_XZ);
-    if (glm::dot(c, top) > 0.0f || glm::length2(prevLeftPlN_XZ) < 0.0001) ///2nd cond !!!! 
+    glm::vec3 c = -glm::cross(prevLeftPlN_XZ, leftPlN_XZ);
+    if (glm::dot(c, top) > 0.0f || glm::length2(prevLeftPlN_XZ) < 0.0001) 
     {
         fr.planes[0] = prevFr.planes[0];
     }
@@ -115,7 +104,7 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
         }
     }
     c = glm::cross(prevRightPlN_XZ, rightPlN_XZ);
-    if (glm::dot(c, top) > 0.0f || glm::length2(prevRightPlN_XZ) < 0.0001) ///2nd cond !!!! 
+    if (glm::dot(c, top) > 0.0f || glm::length2(prevRightPlN_XZ) < 0.0001) 
     {
         fr.planes[1] = prevFr.planes[1];
     }
@@ -136,8 +125,8 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
     glm::vec3 botPlN_XZ = glm::normalize(ProjectVecOnPlane(fr.planes[3].n, middleQuasiYZPlane.n));
     glm::vec3 prevBotPlN_XZ = glm::normalize(ProjectVecOnPlane(prevFr.planes[3].n, middleQuasiYZPlane.n));
     maxAngle = acos(glm::dot(topPlN_XZ, botPlN_XZ));
-    c = glm::cross(prevBotPlN_XZ, botPlN_XZ);//glm::cross(leftPlN_XZ, prevLeftPlN_XZ);
-    if (glm::dot(c, right) > 0.0f || glm::length2(prevBotPlN_XZ) < 0.0001) ///2nd cond !!!! 
+    c = glm::cross(prevBotPlN_XZ, botPlN_XZ);
+    if (glm::dot(c, right) > 0.0f || glm::length2(prevBotPlN_XZ) < 0.0001) 
     {
         fr.planes[3] = prevFr.planes[3];
     }
@@ -149,8 +138,8 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
             fr.planes[3] = prevFr.planes[3];
         }
     }
-    c = -glm::cross(prevTopPlN_XZ, topPlN_XZ);//glm::cross(leftPlN_XZ, prevLeftPlN_XZ);
-    if (glm::dot(c, right) > 0.0f || glm::length2(prevTopPlN_XZ) < 0.0001) ///2nd cond !!!! 
+    c = -glm::cross(prevTopPlN_XZ, topPlN_XZ);
+    if (glm::dot(c, right) > 0.0f || glm::length2(prevTopPlN_XZ) < 0.0001) 
     {
         fr.planes[2] = prevFr.planes[2];
     }
@@ -162,26 +151,24 @@ void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr
             fr.planes[2] = prevFr.planes[2];
         }
     }
-    //cull planes against prev fr
-    /*glm::vec3 leftPlN = glm::normalize(fr.planes[0].n);
-    glm::vec3 rightPlN = glm::normalize(fr.planes[1].n);
-    glm::vec3 prevLeftPlN = glm::normalize(prevFr.planes[0].n);
-    glm::vec3 prevRightPlN = glm::normalize(prevFr.planes[1].n);
-    glm::vec3 topPlN = glm::normalize(fr.planes[2].n);
-    //cull xz planes
-    glm::vec3 c = glm::cross(prevLeftPlN, leftPlN);
-    float v = glm::dot(c, top);
-    float sign = glm::sign(v);
-    if (sign > 0.0f || FEQUAL(v, 0.0f))
-        fr.planes[0] = prevFr.planes[0];
-    else
-    { }*/
+
 }
 
 Portal::Portal()
 {
     for (Room*& r : m_Rooms)
         r = nullptr;
+}
+Portal::Portal(const LoPoApproxGeom& approxGeom, Room* room1, Room* room2)
+{
+    m_Rooms[0] = room1;
+    m_Rooms[1] = room2;
+
+    m_PortalGeom = approxGeom;
+}
+Room* Portal::GetTransition(Room* from)
+{
+    return m_Rooms[0] == from ? m_Rooms[1] : m_Rooms[0];
 }
 bool Portal::Valid()
 {
@@ -197,36 +184,65 @@ AABB Portal::GetAABB()
 
     return aabb;
 }
-void Portal::GatherVisibleObjects(GraphicsDevice& device, Camera& cam, Camera::Frustum& actualFrustum, Room* from, std::vector<SuperMeshInstance*>& meshInstances)
+void Portal::GatherVisibleObjects(GraphicsDevice& device, Camera& cam, Camera::Frustum& actualFrustum, Room* from, std::vector<std::vector<SuperMeshInstance*>>& meshInstancesLists, size_t meshInstsListIndex)
 {
     Camera::Frustum camFrust = Camera::Frustum(cam);
     Camera::Frustum cutFrustum = Camera::Frustum(cam);
-    glm::vec3 d;
-    GenPortalFrustum(camFrust, cutFrustum, cam.GetPosition(), cam.GetRightVec(), cam.GetTopVec(), GetAABB(), d, d);
+
+    GenPortalFrustum(camFrust, cutFrustum, cam.GetPosition(), cam.GetRightVec(), cam.GetTopVec(), GetAABB());
 
     for (Room* room : m_Rooms)
         if (room != from)
-            room->GatherVisibleObjects(device, cam, cutFrustum, this, meshInstances);
+            room->GatherVisibleObjects(device, cam, cutFrustum, this, meshInstancesLists, meshInstsListIndex);
 }
 bool Portal::ExactCheckSegIntersection(const glm::vec3& orig, const glm::vec3& dir)
 {
     return m_PortalGeom.IntersectSeg(orig, dir);
 }
-Room::Room() : m_BVHVis({}) {}
-void Room::GatherVisibleObjects(GraphicsDevice& device, Camera& cam, Camera::Frustum& actualFrustum, Portal* from, std::vector<SuperMeshInstance*>& meshInstances)
+Room::Room() : m_BVHVis({})
+{}
+void Room::GatherVisibleObjects(GraphicsDevice& device, Camera& cam, Camera::Frustum& actualFrustum, Portal* from, std::vector<std::vector<SuperMeshInstance*>>& meshInstancesLists, size_t meshInstsListIndex)
 {
-    m_BVHVis.GatherFrustum(device, actualFrustum, meshInstances);
+    if (meshInstsListIndex >= meshInstancesLists.size())
+        meshInstancesLists.resize(meshInstsListIndex + 1);
 
-    for (Portal* portal : m_Portals)
-        if (portal != from && actualFrustum.Test(portal->GetAABB()))
-            portal->GatherVisibleObjects(device, cam, actualFrustum, this, meshInstances);
+    std::vector<SuperMeshInstance*>& meshInstances = meshInstancesLists[meshInstsListIndex];
+
+    m_BVHVis.GatherFrustum(device, cam.GetPosition(), actualFrustum, meshInstances);
+    for (SuperMeshInstance* mesh : m_Meshes)
+        meshInstances.push_back(mesh);
+
+    for (DirectedPortal& p : m_Portals)
+        if (p.portal != from && actualFrustum.Test(p.portal->GetAABB()))
+            p.portal->GatherVisibleObjects(device, cam, actualFrustum, this, meshInstancesLists, meshInstsListIndex + 1);
 }
-void Room::AddMesh(SuperMeshInstance* mesh, bool rebuildsVis)
+void Room::AddMesh(SuperMeshInstance* mesh, bool applyVis, bool rebuildsVis)
 {
-    m_BVHVis.AddMesh(mesh, rebuildsVis);
+    if (applyVis)
+        m_BVHVis.AddMesh(mesh, rebuildsVis);
+    else
+    {
+        m_Meshes.push_back(mesh);
+        if (rebuildsVis)
+            m_BVHVis.Rebuild();
+    }
 }
 
-void Room::AddPortal(Portal* portal)
+void Room::AddPortal(Portal* portal, const glm::vec3& dir)
 {
-    m_Portals.push_back(portal);
+    m_Portals.push_back({ portal, dir });
+}
+Room* Room::RoomTransition(const glm::vec3& prevCamPos, const glm::vec3& camPos)
+{
+    glm::vec3 segDir = camPos - prevCamPos;
+    for (DirectedPortal& p : m_Portals)
+        if (glm::dot(segDir, p.dir) > 0 && p.portal->ExactCheckSegIntersection(camPos, segDir))
+            return p.portal->GetTransition(this);
+    return this;
+}
+void Room::ReleaseGPUData()
+{
+    m_BVHVis.ReleaseGPUData();
+    for (SuperMeshInstance* mesh : m_Meshes)
+        delete mesh;
 }

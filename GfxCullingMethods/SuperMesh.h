@@ -11,7 +11,7 @@ public:
             m_AABB.Extend(mesh->GetAABB());
     }
 
-    RenderStatistics Render(GraphicsDevice& device, Camera& camera, const glm::mat4x4& modelMatrix = glm::mat4x4())
+    RenderStatistics Render(GraphicsDevice& device, Camera& camera, const glm::mat4x4& modelMatrix = glm::identity<glm::mat4x4>())
     {
         RenderStatistics stats;
         for (Mesh* mesh : m_Meshes)
@@ -42,11 +42,6 @@ public:
 
     void ReleaseGPUData()
     {
-        for (Mesh* mesh : m_Meshes)
-        {
-            mesh->ReleaseGPUData();
-            delete mesh;
-        }
     }
 
     AABB GetAABB() const

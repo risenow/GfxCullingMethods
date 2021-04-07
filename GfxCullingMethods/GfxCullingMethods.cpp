@@ -19,26 +19,9 @@
 #include "ImmediateRenderer.h"
 #include "MicrosecondsTimer.h"
 #include "Portal.h"
+#include "DemoScene1Generate.h"
+#include "randomutils.h"
 #include "basicvsconstants.h"
-
-float Random01()
-{
-    static const size_t res = 10000;
-    return float(rand()) / float(RAND_MAX);
-}
-float RandomFromTo(float from, float to)
-{
-    float t1 = Random01();
-    float t2 = (to - from);
-    float t3 = t1 * t2;
-    float t4 = t3 + from;
-
-    return Random01() * (to - from) + from;
-}
-glm::vec3 RandomFromTo3(float from, float to)
-{
-    return glm::vec3(RandomFromTo(from, to), RandomFromTo(from, to), RandomFromTo(from, to));
-}
 
 Camera CreateInitialCamera(float aspect)
 {
@@ -65,11 +48,12 @@ Camera CreateInitialCamera2(float aspect)
 glm::mat4x4 CreatePawnTranform(const Camera& camera)
 {
     glm::vec3 cameraRot = camera.GetRotation();
-    glm::mat4x4 pawnTransform = glm::rotate(glm::scale(glm::mat4x4(), glm::vec3(100.0f, 100.0f, 100.0f)), cameraRot.y, glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4x4 pawnTransform = glm::rotate(glm::scale(glm::identity<glm::mat4x4>(), glm::vec3(100.0f, 100.0f, 100.0f)), cameraRot.y, glm::vec3(0.0, 1.0, 0.0));
     pawnTransform[3] = glm::vec4(camera.GetPosition(), 1.0f);
 
     return pawnTransform;
 }
+
 
 int TestVisibilityAgainstReference(GraphicsDevice& device, Camera& cam, Visibility* vis, Visibility* refVis)
 {
@@ -91,6 +75,8 @@ int TestVisibilityAgainstReference(GraphicsDevice& device, Camera& cam, Visibili
     double ratio = (double)time1 / (double)time2;
     std::cout << ratio << std::endl;
 
+    //more optimal way is to use push every object of target visibility result
+    //to std::set and then just to check if the ref object is in set if not then just return 1
     for (SuperMeshInstance* refMesh : refMeshes)
     {
         res++;
@@ -117,12 +103,12 @@ int main()
 
     static const std::string WindowTitle = "Culling techniques";
     Window window(WindowTitle, 1, 1, 1024, 712);
-    GraphicsSwapChain swapchain(device, window);
+    GraphicsSwapChain swapchain(device, window, MultisampleType::MULTISAMPLE_TYPE_4X);
     GraphicsTextureCollection textureCollection(device);
     ImmediateRenderer immediateRenderer(device);
 
     D3D11_RASTERIZER_DESC rastState;
-    rastState.AntialiasedLineEnable = false;
+    rastState.AntialiasedLineEnable = FALSE;
     rastState.CullMode = D3D11_CULL_NONE;
     rastState.FillMode = D3D11_FILL_SOLID;
     rastState.FrontCounterClockwise = TRUE;
@@ -131,7 +117,7 @@ int main()
     rastState.DepthBiasClamp = 0.0f;
     rastState.DepthClipEnable = FALSE;
     rastState.ScissorEnable = FALSE;
-    rastState.MultisampleEnable = FALSE;
+    rastState.MultisampleEnable = TRUE;
 
     ID3D11RasterizerState* d3dRastState;
 
@@ -161,85 +147,37 @@ int main()
     device.GetD3D11DeviceContext()->OMSetDepthStencilState(noDepthStencilState, 0);
 
     ColorSurface colorTarget = swapchain.GetBackBufferSurface();
-    DepthSurface depthTarget(device, colorTarget.GetWidth(), colorTarget.GetHeight(), 1, 1, DXGI_FORMAT_D24_UNORM_S8_UINT, GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, MULTISAMPLE_TYPE_NONE), D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL, 0, 0);
+    DepthSurface depthTarget(device, colorTarget.GetWidth(), colorTarget.GetHeight(), 1, 1, DXGI_FORMAT_D24_UNORM_S8_UINT, GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, MultisampleType::MULTISAMPLE_TYPE_4X), D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL, 0, 0);
 
     Camera camera1 = CreateInitialCamera((float)window.GetWidth() / (float)window.GetHeight());
-
     Camera camera2 = CreateInitialCamera2((float)window.GetWidth() / (float)window.GetHeight());
     camera1.m_UseAngles = true;
     camera2.m_UseAngles = true;
 
-    PortalSystem::Room* room = new PortalSystem::Room();
-
-    LoPoApproxGeom portalApproxGeom;
-    LoPoApproxGeom::GenXYAlignedQuad(portalApproxGeom, glm::vec3(-2.0f, -2.0f, 4.0f), 100.0f, 100.0f);
-    PortalSystem::Portal* portal = new PortalSystem::Portal(portalApproxGeom, room, nullptr);
-    
-    room->AddPortal(portal);
-
-    SuperMesh* mesh = SuperMesh::FromFile(device, textureCollection, "Data/SchoolGirlOBJ/D0208059.obj");
-    std::vector<SuperMesh*> subMeshes;
-    subMeshes.resize(mesh->GetSubMeshesCount());
-    for (size_t i = 0; i < mesh->GetSubMeshesCount(); i++)
-        subMeshes[i] = new SuperMesh({ mesh->GetSubMesh(i) });
-
     LinearFrustumVisibility referenceVisibility({});
 
+    SuperMesh* roomMesh;
+    SuperMesh* mesh;
+    std::vector<SuperMesh*> subMeshes;
+    Scene scene;
+    DemoScene1Generate(device, textureCollection, scene, mesh, subMeshes, roomMesh);
+
     GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
-    SuperViewport superViewport1(viewport1, camera1, ViewportVisibility_OctreeFrustum);
-
-    AABB sceneAABB;
-    std::vector<SuperMeshInstance*> tempMeshes;
-
-    for (size_t i = 0; i < 800; i++) 
-    {   
-        glm::vec3 pos = RandomFromTo3(-2000.0f, 2000.0f);
-        glm::mat4x4 transform = glm::translate(glm::mat4x4(), pos);
-
-        for (size_t j = 0; j < subMeshes.size(); j++)
-        {
-            SuperMeshInstance* inst = new SuperMeshInstance(subMeshes[j], transform);
-
-            sceneAABB.Extend(inst->GetAABB());
-
-            tempMeshes.push_back(inst);
-            referenceVisibility.AddMesh(inst);
-        }
-    }
-    superViewport1.SetVisHelpInfo(sceneAABB);
-
-    MicrosecondsTimer estTimer;
-    estTimer.Begin();
-    for (SuperMeshInstance* mesh : tempMeshes)
-        room->AddMesh(mesh);
-
-    room->AddMesh(tempMeshes[0], true);
-        //superViewport1.AddMesh(mesh);
-    //superViewport1.AddMesh(new SuperMeshInstance(mesh, glm::translate(glm::scale(glm::mat4x4(), RandomFromTo3(0.2f, 1.1f)), RandomFromTo3(-1000.0f, 1000.0f))), true, true);
-    std::cout << estTimer.End() << std::endl;
-    //exit(0);
+    SuperViewport superViewport1(viewport1, camera1, &scene);
 
     GraphicsViewport viewport2(BoundRect(Point2D(window.GetWidth() / 2, 0), window.GetWidth() / 2, window.GetHeight()));
-    SuperViewport superViewport2(viewport2, camera2, ViewportVisibility_None);
+    SuperViewport superViewport2(viewport2, camera2, nullptr);
 
     SuperMeshInstance* pawnInstance = new SuperMeshInstance(GetPawnPlaceholderMesh(device, textureCollection), CreatePawnTranform(camera1));
-    superViewport2.AddMesh(pawnInstance);
-
-    room->ShareVis(superViewport2);
-    room->ShareVis(superViewport1);
-    //superViewport1.ShareVisibility({ &superViewport2 });
+    superViewport2.AddMeshDbg(pawnInstance);
 
     MouseKeyboardCameraController cameraController(camera1);
 
-    RenderStatistics stats;
-
-    short visTypeIndex = (short)ViewportVisibility_LinearFrustum;
-    long long visAlterLastFrame = 0;
-    std::vector<SuperMeshInstance*> visObjs;
-    visObjs.reserve(tempMeshes.size());
-
     while (!window.IsClosed())
     {
+        superViewport1.Update();
+        superViewport2.Update();
+
         immediateRenderer.OnFrameBegin(device);
 
         glm::vec3 cam1Pos = camera1.GetPosition();
@@ -247,52 +185,39 @@ int main()
 
         pawnInstance->SetTransform(CreatePawnTranform(camera1));
 
-        visObjs.clear();
-        Camera::Frustum camFr = Camera::Frustum(camera1);
-        Camera::Frustum cutFr;
-        glm::vec3 tp;
-        glm::vec3 rt;
-        glm::vec3 psCamPos = glm::vec3(0.0, 300.0, -400.0);
-        PortalSystem::GenPortalFrustum(camFr, cutFr, psCamPos, camera1.GetRightVec(), camera1.GetRightVec(), portal->GetAABB(), rt, tp);
-        portal->GatherVisibleObjects(device, camera1, camFr, nullptr, visObjs);
-
-        stats = superViewport1.Render(device, colorTarget, depthTarget);
-
-        std::cout << camera1.GetRightVec().x << " " << camera1.GetRightVec().z << "\n";
-
-        Plane leftPlane = cutFr.planes[0];
-        float cY = 0.0f;
-        float cZ = 4.0f;
-        tp = glm::normalize(tp);
-        rt = glm::normalize(rt);
-        glm::vec3 leftP = glm::vec3((-leftPlane.n.y * cY - leftPlane.n.z * cZ - leftPlane.d) / leftPlane.n.x, cY, cZ);
-        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), leftP, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        Plane rightPlane = cutFr.planes[1];
-        glm::vec3 rightP = glm::vec3((-rightPlane.n.y * cY - rightPlane.n.z * cZ - rightPlane.d) / rightPlane.n.x, cY, cZ);
-        immediateRenderer.Line(psCamPos-glm::vec3(0.0, 10.0, 0.0), rightP, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), psCamPos - glm::vec3(0.0, 10.0, 0.0) + rt * 8.0f, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f));
-        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), psCamPos - glm::vec3(0.0, 10.0, 0.0) + tp * 8.0f, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f));
-        immediateRenderer.Line(psCamPos - glm::vec3(0.0, 10.0, 0.0), portal->GetAABB().m_Centroid, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f));
-        immediateRenderer.WireframeAABB(portal->GetAABB(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        immediateRenderer.OnFrameEnd(device, camera1, colorTarget, depthTarget);
+        RenderStatistics stats = superViewport1.Render(device, colorTarget, depthTarget);
 
         superViewport2.Render(device, colorTarget, depthTarget, false);
+        scene.Render(device, camera2, true);
+
+        immediateRenderer.OnFrameEnd(device, camera2, colorTarget, depthTarget);
 
         window.SetTitle(WindowTitle + " " + std::to_string(stats.primCount) + " " + std::to_string(stats.drawCallsCount));
 
-        //do sm kinda shit here
         swapchain.Present();
         device.OnPresent();
         cameraController.Update(window);
         window.ExplicitUpdate(); // if you want to get rid of it, just uncomment MT_WINDOW define in Window.h
     }
 
-    mesh->ReleaseGPUData();
+    for (size_t i = 0; i < mesh->GetSubMeshesCount(); i++)
+    {
+        mesh->GetSubMesh(i)->ReleaseGPUData();
+        delete mesh->GetSubMesh(i);
+    }
+    delete mesh;
+    for (SuperMesh* subMesh : subMeshes)
+        delete subMesh;
+    roomMesh->GetSubMesh(0)->ReleaseGPUData();
+    delete roomMesh->GetSubMesh(0);
+    delete roomMesh;
 
     Mesh::ReleaseShadersGPUData(device);
     device.ReleaseGPUData();
     swapchain.ReleaseGPUData();
     superViewport1.ReleaseGPUData();
     superViewport2.ReleaseGPUData();
-    GetPawnPlaceholderMesh(device, textureCollection)->ReleaseGPUData();
+    GetPawnPlaceholderMesh(device, textureCollection)->GetSubMesh(0)->ReleaseGPUData();
+
+    
 }
