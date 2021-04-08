@@ -24,6 +24,7 @@ public:
         float dist = 0.0f;
         bool intersect = glm::intersectRayTriangle(origin, dir, m_Verts[0], m_Verts[1], m_Verts[2], p, dist);
         float len = glm::length(dir);
+        dist *= len;
 
         if (intersect)
             std::cout << dist << " " << len << " " << intersect << std::endl;

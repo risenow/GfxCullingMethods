@@ -5,6 +5,11 @@ using namespace PortalSystem;
 
 void PortalSystem::GenPortalFrustum(Camera::Frustum& prevFr, Camera::Frustum& fr, const glm::vec3& camPos, const glm::vec3& rightV, const glm::vec3& topV, const AABB& portal)
 {
+    if (portal.Contains(camPos))
+    {
+        fr = prevFr;
+        return;
+    }
     int maxXIndex = -1; float maxXScore = -FLT_MAX;
     int maxYIndex = -1; float maxYScore = -FLT_MAX;
     int minXIndex = -1; float minXScore = FLT_MAX;
