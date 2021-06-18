@@ -197,7 +197,7 @@ void Portal::GatherVisibleObjects(GraphicsDevice& device, Camera& cam, Camera::F
     GenPortalFrustum(camFrust, cutFrustum, cam.GetPosition(), cam.GetRightVec(), cam.GetTopVec(), GetAABB());
 
     for (Room* room : m_Rooms)
-        if (room != from)
+        if (room != from && room)
             room->GatherVisibleObjects(device, cam, cutFrustum, this, meshInstancesLists, meshInstsListIndex);
 }
 bool Portal::ExactCheckSegIntersection(const glm::vec3& orig, const glm::vec3& dir)
@@ -245,9 +245,20 @@ Room* Room::RoomTransition(const glm::vec3& prevCamPos, const glm::vec3& camPos)
             return p.portal->GetTransition(this);
     return this;
 }
+void Room::SetAABB(const AABB& aabb)
+{
+    m_BVHVis.SetSceneAABB(aabb);
+}
+void Room::Clear() // delete meshes?
+{
+    m_BVHVis.Clear();
+    for (SuperMeshInstance* mesh : m_Meshes)
+        delete mesh;
+}
 void Room::ReleaseGPUData()
 {
-    m_BVHVis.ReleaseGPUData();
+    //to uncomment
+    //m_BVHVis.ReleaseGPUData();
     for (SuperMeshInstance* mesh : m_Meshes)
         delete mesh;
 }

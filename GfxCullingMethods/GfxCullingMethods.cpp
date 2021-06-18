@@ -19,6 +19,8 @@
 #include "ImmediateRenderer.h"
 #include "MicrosecondsTimer.h"
 #include "Portal.h"
+#include "BasicVertexShaderStorage.h"
+#include "BasicPixelShaderStorage.h"
 #include "DemoScene1Generate.h"
 #include "randomutils.h"
 #include "basicvsconstants.h"
@@ -105,6 +107,10 @@ int main()
     Window window(WindowTitle, 1, 1, 1024, 712);
     GraphicsSwapChain swapchain(device, window, MultisampleType::MULTISAMPLE_TYPE_4X);
     GraphicsTextureCollection textureCollection(device);
+
+    BasicVertexShaderStorage::GetInstance().Load(device);
+    BasicPixelShaderStorage::GetInstance().Load(device);
+
     ImmediateRenderer immediateRenderer(device);
 
     D3D11_RASTERIZER_DESC rastState;
@@ -187,8 +193,8 @@ int main()
 
         RenderStatistics stats = superViewport1.Render(device, colorTarget, depthTarget);
 
-        superViewport2.Render(device, colorTarget, depthTarget, false);
-        scene.Render(device, camera2, true);
+        superViewport2.Render(device, colorTarget, depthTarget, false); //hack to setup second viewport render state
+        scene.Render(device, camera2, true); // render with this renderstate(rendertargets, depthtargets, etc)
 
         immediateRenderer.OnFrameEnd(device, camera2, colorTarget, depthTarget);
 
@@ -208,9 +214,9 @@ int main()
     delete mesh;
     for (SuperMesh* subMesh : subMeshes)
         delete subMesh;
-    roomMesh->GetSubMesh(0)->ReleaseGPUData();
-    delete roomMesh->GetSubMesh(0);
-    delete roomMesh;
+    //roomMesh->GetSubMesh(0)->ReleaseGPUData();
+    //delete roomMesh->GetSubMesh(0);
+    //delete roomMesh;
 
     Mesh::ReleaseShadersGPUData(device);
     device.ReleaseGPUData();

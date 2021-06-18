@@ -2,6 +2,7 @@
 #include "dxlogicsafety.h"
 #include "Log.h"
 #include "logicsafety.h"
+#include "helperutil.h"
 #include "strutils.h"
 
 std::string GetShaderD3DTarget(GraphicsShaderType shaderType, const std::string& targetVersionStr)
@@ -75,4 +76,36 @@ void GetD3DShaderMacros(const std::vector<GraphicsShaderMacro>& inShaderMacros, 
 	D3D_SHADER_MACRO nullMacro;
 	memset((void*)&nullMacro, 0, sizeof(nullMacro));
 	outD3DShaderMacros.push_back(nullMacro);
+}
+
+void GetAllMacrosCombinations(const std::vector<GraphicsShaderMacro>& macroSet, std::vector<ExtendedShaderVariation>& permutations, size_t hasAnyOfRule, size_t hasOnlyOneOfRule, size_t optionallyHasOnlyOneOfRule, size_t hasAllOfRule)
+{
+    size_t setBitmask = pow(2, macroSet.size()) - 1;
+    for (size_t i = 0; i <= setBitmask; i++)
+    {
+        if (optionallyHasOnlyOneOfRule && !((i & optionallyHasOnlyOneOfRule) == 0 || isExpOf2(i & optionallyHasOnlyOneOfRule)))
+            continue;
+        if (hasOnlyOneOfRule && !isExpOf2(i & hasOnlyOneOfRule))
+            continue;
+        if (hasAnyOfRule && (i & hasAnyOfRule) == 0)
+            continue;
+        if (hasAllOfRule && (i & hasAllOfRule) != hasAllOfRule)
+            continue;
+        permutations.push_back(ExtendedShaderVariation());
+        ShaderVariation& currentMutation = permutations.back().m_ShaderVariation;
+        for (size_t j = 0; j < macroSet.size(); j++)
+        {
+            if (i & (1 << j))
+                currentMutation.push_back(macroSet[j]);
+        }
+        permutations.back().m_Bits = i;
+    }
+}
+//mb use bitfields for macro everywhere?
+std::vector<ExtendedShaderVariation> GetAllPermutations(const std::vector<GraphicsShaderMacro>& macroSet, size_t hasAnyOfRule, size_t hasOnlyOneOfRule, size_t optionallyHasOnlyOneOfRule, size_t hasAllOfRule)
+{
+    std::vector<ExtendedShaderVariation> mutations;
+    GetAllMacrosCombinations(macroSet, mutations, hasAnyOfRule, hasOnlyOneOfRule, optionallyHasOnlyOneOfRule, hasAllOfRule);
+
+    return mutations;
 }

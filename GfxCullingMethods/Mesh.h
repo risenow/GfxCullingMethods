@@ -10,6 +10,8 @@
 #include "VertexFormatHelper.h"
 #include "GraphicsConstantsBuffer.h"
 #include "RenderStatistics.h"
+#include "BasicVertexShaderStorage.h"
+#include "BasicPixelShaderStorage.h"
 #include "basicvsconstants.h"
 #include "pathutils.h"
 #include "gfxutils.h"
@@ -19,7 +21,7 @@
 class Mesh
 {
 public:
-    Mesh() : m_Diffuse(nullptr), m_VertexCount(0) {}
+    Mesh() : m_Diffuse(nullptr), m_VertexCount(0), m_TexCoordsEnabled(false), m_NormalsEnabled(false) {}
 
     static GraphicsShader& GetVertexShader(GraphicsDevice& dev)
     {
@@ -56,6 +58,9 @@ public:
         Texture2D* diff = diffuse;
         currMesh->m_Diffuse = diff != nullptr ? diff : textureCollection.GetWhiteTexture();
     }
+
+    //TODO(instancing):
+    //merge in 1 option
     static void LoadFromFile(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, const std::string& file, std::vector<Mesh*>& meshes, AABB& superAABB)
     {
         std::string path = ExcludeFileFromPath(file);
@@ -107,6 +112,8 @@ public:
             assert(normsEnabled && tcEnabled);
 
             Mesh* currMesh = new Mesh();
+            currMesh->m_NormalsEnabled = normsEnabled;
+            currMesh->m_TexCoordsEnabled = tcEnabled;
             currMesh->m_AABB = AABB();
             meshes.push_back(currMesh);
 
@@ -153,9 +160,17 @@ public:
             currMesh->m_Diffuse = diff != nullptr ? diff : textureCollection.GetWhiteTexture();
         }
     }
-        
+    
+
     RenderStatistics Render(GraphicsDevice& device, Camera& camera, const glm::mat4x4& modelMatrix = glm::identity<glm::mat4x4>())
     {
+        size_t shaderFlags = 0;
+        if (m_NormalsEnabled)
+            shaderFlags = shaderFlags | BasicVertexShaderStorage::NORMALS_ENABLED;
+        if (m_TexCoordsEnabled)
+            shaderFlags = shaderFlags | BasicVertexShaderStorage::TEXCOORDS_ENABLED;
+        m_VertexShader = BasicVertexShaderStorage::GetInstance().GetShader(shaderFlags);
+        m_PixelShader = BasicPixelShaderStorage::GetInstance().GetShader(shaderFlags);
         m_VertexShader.Bind(device);
         m_PixelShader.Bind(device);
         m_InputLayout.Bind(device);
@@ -179,6 +194,42 @@ public:
         device.GetD3D11DeviceContext()->Draw(m_VertexCount, 0);
 
         return { GetPrimCount(), 1};
+    }
+    RenderStatistics RenderInstanced(GraphicsDevice& device, Camera& camera, GraphicsBuffer& argsBuffer, size_t bufferOffset, GraphicsBuffer& instancesBuffer)
+    {
+        size_t shaderFlags = BasicVertexShaderStorage::INSTANCED;
+        if (m_NormalsEnabled)
+            shaderFlags = shaderFlags | BasicVertexShaderStorage::NORMALS_ENABLED;
+        if (m_TexCoordsEnabled)
+            shaderFlags = shaderFlags | BasicVertexShaderStorage::TEXCOORDS_ENABLED;
+        m_VertexShader = BasicVertexShaderStorage::GetInstance().GetShader(shaderFlags);
+        m_PixelShader = BasicPixelShaderStorage::GetInstance().GetShader(shaderFlags ^ BasicVertexShaderStorage::INSTANCED);
+        m_VertexShader.Bind(device);
+        m_PixelShader.Bind(device);
+        m_InputLayout.Bind(device);
+        m_VertexBuffer.Bind(device);
+
+        ID3D11ShaderResourceView* instancesSRV = instancesBuffer.GetSRV();
+        device.GetD3D11DeviceContext()->VSSetShaderResources(0, 1, &instancesSRV);
+
+        ID3D11ShaderResourceView* srv = m_Diffuse->GetSRV();
+        device.GetD3D11DeviceContext()->PSSetShaderResources(0, 1, &srv);
+        ID3D11SamplerState* sampler = GetTrilinearSampler(device);
+        device.GetD3D11DeviceContext()->PSSetSamplers(0, 1, &sampler);
+
+        BasicVSConsts consts;
+        consts.view = camera.GetViewMatrix();
+        consts.projection = camera.GetProjectionMatrix();
+        consts.model = glm::identity<glm::mat4x4>();
+
+        GraphicsConstantsBuffer<BasicVSConsts>& constsBuffer = m_ConstantsBuffer;
+        constsBuffer.Update(device, consts);
+        constsBuffer.Bind(device, GraphicsShaderMask_Vertex | GraphicsShaderMask_Pixel, 0);
+
+        device.GetD3D11DeviceContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        device.GetD3D11DeviceContext()->DrawInstancedIndirect(argsBuffer.GetBuffer(), bufferOffset);
+
+        return { 0, 1 };
     }
 
     void Reset(GraphicsDevice& device, VertexData& data, Texture2D* diff, AABB aabb)
@@ -210,6 +261,11 @@ public:
         return m_VertexCount / 3;
     }
 
+    int GetVertexCount()
+    {
+        return m_VertexCount;
+    }
+
     AABB GetAABB()
     {
         return m_AABB;
@@ -223,4 +279,7 @@ private:
     GraphicsShader m_PixelShader;
     GraphicsInputLayout m_InputLayout;
     AABB m_AABB;
+
+    bool m_NormalsEnabled;
+    bool m_TexCoordsEnabled;
 };

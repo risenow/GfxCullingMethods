@@ -2,6 +2,7 @@
 
 #include "Visibility.h"
 #include "Octree.h"
+#include "MicrosecondsTimer.h"
 #include <unordered_set>
 #include <assert.h>
 
@@ -48,7 +49,11 @@ public:
 
         Camera::Frustum frustum = fr;
 
+        MicrosecondsTimer timer;
+        timer.Begin();
         m_Octree.GatherVisiblePayload(frustum, m_LastVisibleMeshes, 0, device.GetFrameIndex());
+        __int64 dur = timer.End();
+        std::cout << "dur " << std::to_string(dur) << std::endl;
 
         visibleMeshes = m_LastVisibleMeshes;
     }

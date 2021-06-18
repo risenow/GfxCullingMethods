@@ -1,8 +1,10 @@
 #include "DemoScene1Generate.h"
+#include "Log.h"
+#include "MicrosecondsTimer.h"
 
 void DemoScene1Generate(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, Scene& scene, SuperMesh*& mesh, std::vector<SuperMesh*>& subMeshes, SuperMesh*& indoorMesh1)
 {
-    std::vector<PortalSystem::Room*> rooms;
+    /*std::vector<PortalSystem::Room*> rooms;
 
     LoPoApproxGeom portalGeom;
     LoPoApproxGeom::GenXYAlignedQuad(portalGeom, glm::vec3(.0f, 200.0f, 20.0f), 100.0f, 100.0f);
@@ -268,5 +270,62 @@ void DemoScene1Generate(GraphicsDevice& device, GraphicsTextureCollection& textu
 
     indoorMesh1 = room1SuperMesh;
 
-    scene.ConsumeRooms({ room1, room2 });
+    scene.ConsumeRooms({ room1, room2 });*/
+
+        FileRuntimeLogStream fileStream;
+        fileStream.open("dat.csv", std::wofstream::trunc | std::wofstream::out);
+
+        std::vector<PortalSystem::Room*> rooms;
+
+        LoPoApproxGeom portalGeom;
+        LoPoApproxGeom::GenXYAlignedQuad(portalGeom, glm::vec3(.0f, 200.0f, 20.0f), 100.0f, 100000000000000000.0f);
+
+        PortalSystem::Room* room1 = new PortalSystem::Room();
+        PortalSystem::Room* room2 = nullptr;
+
+        room1->SetAABB(AABB(glm::vec3(-650.0f, -650.0F, -650.0F), glm::vec3(650.0f, 650.0F, 650.0F)));
+
+        PortalSystem::Portal* portal = new PortalSystem::Portal(portalGeom, room1, room2);
+        room1->AddPortal(portal, glm::vec3(0.0, 0.0, 1.0));
+
+        mesh = SuperMesh::FromFile(device, textureCollection, "Data/SchoolGirlOBJ/D0208059.obj");
+        subMeshes.resize(mesh->GetSubMeshesCount());
+        for (size_t i = 0; i < mesh->GetSubMeshesCount(); i++)
+            subMeshes[i] = new SuperMesh({ mesh->GetSubMesh(i) });
+
+        //for (int n = 1; n < 50; n++)
+        int n = 48;
+        {
+            MicrosecondsTimer timer;
+            timer.Begin();
+            int objsM = 20;
+            for (size_t i = 0; i < n* objsM; i++) //x38
+            {
+                glm::vec3 pos = RandomFromTo3(-650.0f, 650.0f);
+                glm::mat4x4 transform = glm::translate(glm::identity<glm::mat4x4>(), pos);
+
+                for (size_t j = 0; j < subMeshes.size(); j++)
+                {
+                    SuperMeshInstance* inst = new SuperMeshInstance(subMeshes[j], transform);
+
+                    room1->AddMesh(inst);
+                }
+            }
+
+            __int64 score = timer.End();
+            timer.Reset();
+            fileStream.Write(std::to_wstring(38 * n * objsM) + L", " + std::to_wstring(score) + L"\n");
+            std::cout << score << std::endl;
+
+
+            SuperMeshInstance* dummyInst = new SuperMeshInstance(subMeshes[0], glm::identity<glm::mat4x4>());
+            room1->AddMesh(dummyInst, true, true);
+            
+            //room1->Clear();
+        }
+        //std::cout << score << std::endl;
+
+        indoorMesh1 = nullptr;
+
+        scene.ConsumeRooms({ room1 });
 }

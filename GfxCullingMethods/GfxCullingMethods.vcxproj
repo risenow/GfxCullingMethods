@@ -106,13 +106,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>CPU_SIDE_CODE;NOMINMAX;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>DirectXTexExRel.lib;DirectXTexRel.lib;dxguid.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTexExRel_llvm.lib;DirectXTexRel.lib;dxguid.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>+</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
@@ -145,6 +146,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BasicPixelShaderStorage.cpp" />
+    <ClCompile Include="BasicVertexShaderStorage.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DemoScene1Generate.cpp" />
     <ClCompile Include="DisplayAdaptersList.cpp" />
@@ -182,15 +185,20 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="areahelper.h" />
     <ClInclude Include="arrayutil.h" />
+    <ClInclude Include="BasicPixelShaderStorage.h" />
+    <ClInclude Include="BasicVertexShaderStorage.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="BVHFrustumVisibility.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ConstantsPreprocessing.h" />
+    <ClInclude Include="CullConsts.h" />
     <ClInclude Include="DemoScene1Generate.h" />
     <ClInclude Include="DisplayAdaptersList.h" />
+    <ClInclude Include="DrawInstancedIndirectArgs.h" />
     <ClInclude Include="dxerrorcodesinterpreteutil.h" />
     <ClInclude Include="dxlogicsafety.h" />
     <ClInclude Include="gfxutils.h" />
+    <ClInclude Include="GPUDrivenRenderer.h" />
     <ClInclude Include="GraphicsBuffer.h" />
     <ClInclude Include="GraphicsConstantsBuffer.h" />
     <ClInclude Include="GraphicsDevice.h" />
@@ -207,8 +215,10 @@
     <ClInclude Include="PagedPoolSTDAllocator.h" />
     <ClInclude Include="Portal.h" />
     <ClInclude Include="randomutils.h" />
+    <ClInclude Include="SBB.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="serializeutils.h" />
+    <ClInclude Include="ShaderStorage.h" />
     <ClInclude Include="SharedAllocList.h" />
     <ClInclude Include="LinearFrustumVisibility.h" />
     <ClInclude Include="LinearStack.h" />
@@ -238,6 +248,16 @@
     <ClInclude Include="VertexFormatHelper.h" />
     <ClInclude Include="Visibility.h" />
     <ClInclude Include="Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="basicps.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="basicvs.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

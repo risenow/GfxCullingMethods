@@ -7,7 +7,7 @@ class GraphicsInputLayout
 {
 public:
 	GraphicsInputLayout();
-    GraphicsInputLayout(GraphicsDevice& device, const VertexFormat& verteFormat, const GraphicsShader& shader);
+    GraphicsInputLayout(GraphicsDevice& device, const VertexFormat& vertexFormat, const GraphicsShader& shader);
 
 	void Bind(GraphicsDevice& device);
 

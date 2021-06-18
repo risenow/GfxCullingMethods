@@ -34,6 +34,12 @@ struct AABB
         LeftTopFront = TopMask | FrontMask,
         RightTopFront = RightMask | TopMask | FrontMask
     };
+    glm::vec4 GetSBB()
+    {
+        glm::vec3 v = m_Max - m_Min;
+        float maxSide = std::max(std::max(v.x, v.y), v.z);
+        return glm::vec4(m_Centroid.x, m_Centroid.y, m_Centroid.z, maxSide);
+    }
     glm::vec3 GetPoint(int i) const
     {
         int cx = (i & RightMask);

@@ -495,7 +495,7 @@ template<class payload_t>
 class PerfWideOctree
 {
 public:
-    PerfWideOctree() {}
+    PerfWideOctree() : m_Root(nullptr) {}
 
     struct Node;
     typedef PagedObjPool<Node[8], 312> NodesPool;
@@ -704,7 +704,9 @@ public:
             delete m_Root;
         m_Root = nullptr;
         m_NodesPool.Clear();
+        m_NodesPool.Init();
         m_ListNodesPool.Clear();
+        m_AABBs.clear();
     }
 private:
     Node* m_Root;

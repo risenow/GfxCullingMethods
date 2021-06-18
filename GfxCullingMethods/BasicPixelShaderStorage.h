@@ -1,0 +1,26 @@
+#pragma once
+#include "ShaderStorage.h"
+
+class BasicPixelShaderStorage : public ShaderStorage
+{
+public:
+    static BasicPixelShaderStorage& GetInstance()
+    {
+        static BasicPixelShaderStorage inst;
+        return inst;
+    }
+    BasicPixelShaderStorage() {
+        m_ShaderFile = L"basicps.hlsl";
+        BasicPixelShaderStorage::NORMALS_ENABLED = 1 << 0;
+        BasicPixelShaderStorage::TEXCOORDS_ENABLED = 1 << 1;
+        m_MacroSet = { GraphicsShaderMacro("NORMALS_ENABLED", "1"), GraphicsShaderMacro("TEXCOORDS_ENABLED", "1") };
+    }
+    void Load(GraphicsDevice& device)
+    {
+        ShaderStorage::Load(device, GraphicsShaderType_Pixel);
+    }
+
+    static size_t NORMALS_ENABLED;
+    static size_t TEXCOORDS_ENABLED;
+
+};

@@ -29,7 +29,14 @@ public:
     {
         m_Transform = transform;
     }
-
+    glm::mat4x4 GetTransform() const
+    {
+        return m_Transform;
+    }
+    SuperMesh* GetSuperMesh() const
+    {
+        return m_Mesh;
+    }
     /*void ProduceInstancesPerSubMesh(std::vector<SuperMeshInstance*>& meshes)
     {
         meshes.resize(m_Mesh->GetSubMeshesCount())

@@ -82,7 +82,7 @@ public:
 
 	virtual void Write(const std::wstring& str) override
 	{
-		(*this) << unitbuf;
+		//(*this) << unitbuf; wtf?
 		(*this) << str;
 		flush();
 	}

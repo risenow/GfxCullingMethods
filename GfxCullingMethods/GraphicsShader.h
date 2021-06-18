@@ -116,9 +116,17 @@ struct GraphicsShaderMacro
 	std::string m_Value;
 };
 
+
+typedef std::vector<GraphicsShaderMacro> ShaderVariation;
+
+struct ExtendedShaderVariation
+{
+	ShaderVariation m_ShaderVariation;
+	uint32_t m_Bits;
+};
+
 void GetD3DShaderMacros(const std::vector<GraphicsShaderMacro>& inShaderMacros, std::vector<D3D_SHADER_MACRO>& outD3DShaderMacros);
 
-//it is stupid as hell, make it just plain class, specializations are just ruining everything
 class GraphicsShader
 {
 private:
@@ -206,7 +214,7 @@ public:
 		return shader;
 	}
 
-	static GraphicsShader FromFile(GraphicsDevice& device, GraphicsShaderType type, const std::wstring& filePath)
+	static GraphicsShader FromFile(GraphicsDevice& device, GraphicsShaderType type, const std::wstring& filePath, const ShaderVariation& var = {})
 	{
 		std::ifstream shaderFile(filePath);
 		std::stringstream buffer;
@@ -214,7 +222,7 @@ public:
 
 		std::string content = buffer.str();
 
-		return CreateFromTextContent(device, type, filePath, content);
+		return CreateFromTextContent(device, type, filePath, content, var);
 	}
 
 	virtual ~GraphicsShader()
@@ -294,3 +302,5 @@ private:
     size_t m_VariationID; //????
 };
 
+void GetAllMacrosCombinations(const std::vector<GraphicsShaderMacro>& macroSet, std::vector<std::vector<GraphicsShaderMacro>>& permutations, size_t hasAnyOfRule = 0, size_t hasOnlyOneOfRule = 0, size_t optionallyHasOnlyOneOfRule = 0, size_t hasAllOfRule = 0);
+std::vector<ExtendedShaderVariation> GetAllPermutations(const std::vector<GraphicsShaderMacro>& macroSet, size_t hasAnyOfRule = 0, size_t hasOnlyOneOfRule = 0, size_t optionallyHasOnlyOneOfRule = 0, size_t hasAllOfRule = 0);

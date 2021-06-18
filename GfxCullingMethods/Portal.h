@@ -42,14 +42,17 @@ namespace PortalSystem
         void GatherVisibleObjects(GraphicsDevice& dev, Camera& cam, Camera::Frustum& actualFrustum, Portal* from, std::vector<std::vector<SuperMeshInstance*>>& meshInstancesLists, size_t meshInstsListIndex = 0);
         void AddMesh(SuperMeshInstance* mesh, bool applyVis = true, bool rebuildVis = false);
         void AddPortal(Portal* portal, const glm::vec3& dir );
+        void SetAABB(const AABB& aabb);
 
         Room* RoomTransition(const glm::vec3& prevCamPos, const glm::vec3& camPos);
 
+        void Clear();
         void ReleaseGPUData();
     private:
         std::vector<DirectedPortal> m_Portals;
         
         std::vector<SuperMeshInstance*> m_Meshes; //additional geometry not managed by visibility systems
-        BVHFrustumVisibility m_BVHVis;
+        //BVHFrustumVisibility m_BVHVis;
+        OctreeFrustumVisibility m_BVHVis;
     };
 }

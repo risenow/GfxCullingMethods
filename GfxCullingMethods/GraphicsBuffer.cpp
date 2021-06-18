@@ -61,6 +61,9 @@ unsigned int MiscFlagToD3D11MiscFlag(GraphicsBuffer::MiscFlags miscFlag)
 	case GraphicsBuffer::MiscFlag_Structured:
 		return D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 		break;
+    case GraphicsBuffer::MiscFlag_DrawIndirectArgs:
+        return D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+        break;
     default:
         popAssert(false);
         return -1;
@@ -177,3 +180,6 @@ void IndexBuffer::Bind(GraphicsDevice& device)
     if (m_Buffer)
         device.GetD3D11DeviceContext()->IASetIndexBuffer(m_Buffer, DXGI_FORMAT_R32_UINT, 0);
 }
+
+
+

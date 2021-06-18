@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Visibility.h"
+#include "MicrosecondsTimer.h"
 #include "BVH.h"
 
 class BVHFrustumVisibility : public Visibility
@@ -46,7 +47,11 @@ public:
 
         Camera::Frustum frustum = fr;
 
+        MicrosecondsTimer timer;
+        timer.Begin();
         m_BVH.GatherVisiblePayload(frustum, m_LastVisibleMeshes);
+        __int64 dur = timer.End();
+        std::cout << "gath dur: " + std::to_string(dur) << std::endl;
 
         visibleMeshes = m_LastVisibleMeshes;
     }

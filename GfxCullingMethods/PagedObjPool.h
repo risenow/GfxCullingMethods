@@ -6,13 +6,19 @@ template<class T, int pageSz>
 class PagedObjPool
 {
 public:
+    void Init()
+    {
+        m_Pages.push_back(Pool<AllocData>(pageSz, [&](AllocData& obj) {obj.m_PageIndex = 0; }));
+    }
     PagedObjPool(bool init = true)  // false for use in a field
     {
         if (init)
-            m_Pages.push_back(Pool<AllocData>(pageSz, [&](AllocData& obj) {obj.m_PageIndex = 0; }));
+            Init();
     }
     T* Pop()
     {
+        if (m_Pages.size() == 0)
+            Init();
         for (size_t i = 0; i < m_Pages.size(); i++)
         {
             if (!m_Pages[i].Empty())
@@ -36,7 +42,7 @@ public:
 private:
     struct AllocData
     {
-        size_t m_PageIndex;
+        int m_PageIndex;
         T m_Data;
     };
 

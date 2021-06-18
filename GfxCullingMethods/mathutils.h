@@ -12,6 +12,10 @@ struct Plane
     {
         return glm::dot(p, n) + d;
     }
+    glm::vec4 AsVec()
+    {
+        return glm::vec4(n.x, n.y, n.z, d);
+    }
 
     glm::vec3 n;
     float d;
