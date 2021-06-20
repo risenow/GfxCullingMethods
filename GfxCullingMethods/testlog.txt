@@ -1,10 +1,10 @@
-[TIME:244] Adapters enumerated:
-[TIME:245] Adapter index: 0
-[TIME:245] Description: AMD Radeon(TM) Graphics
-[TIME:245] 
-[TIME:245] Adapter index: 1
-[TIME:245] Description: NVIDIA GeForce GTX 1650 Ti
-[TIME:245] 
-[TIME:245] Adapter index: 2
-[TIME:246] Description: Microsoft Basic Render Driver
-[TIME:246] 
+[TIME:75] Adapters enumerated:
+[TIME:75] Adapter index: 0
+[TIME:76] Description: AMD Radeon(TM) Graphics
+[TIME:76] 
+[TIME:76] Adapter index: 1
+[TIME:76] Description: NVIDIA GeForce GTX 1650 Ti
+[TIME:76] 
+[TIME:76] Adapter index: 2
+[TIME:77] Description: Microsoft Basic Render Driver
+[TIME:77] 

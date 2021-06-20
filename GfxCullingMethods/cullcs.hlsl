@@ -38,13 +38,9 @@ bool CullSphere(float4 sphere)
 #define ARGS_SZ 16
 
 void IncInstanceCount(uint batchIndex, out uint count, out uint start)
-{
-	//count=args.Load(ARGS_SZ*batchIndex + 4);
-	
-	//args.InterlockedAdd(ARGS_SZ*batchIndex + 4, 1u, count);
-	//InterlockedAdd(args[ARGS_SZ*batchIndex + 4], 1);
-	//count = 0;
-	//start = args.Load(ARGS_SZ*batchIndex + 12);
+{	
+	args.InterlockedAdd(ARGS_SZ*batchIndex + 4, 1u, count);
+	start = args.Load(ARGS_SZ*batchIndex + 12);
 }
 
 
@@ -66,10 +62,8 @@ void CSEntry(uint3 id : SV_DispatchThreadID)
 			uint count = 0;
 			uint start = 0;
 			
-			//IncInstanceCount(batchIndex, count, start);
-			args.InterlockedAdd(16*batchIndex + 4, 1, count);
+			IncInstanceCount(batchIndex, count, start);
 			
-			start = args.Load(16*batchIndex + 12);
 			renderInstances[start+count] = inst;
 
 		}
