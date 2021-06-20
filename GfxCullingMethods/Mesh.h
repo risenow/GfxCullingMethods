@@ -46,9 +46,11 @@ public:
         Mesh* currMesh = &mesh;
 
         VertexFormat vertexFormat = vertexData.GetVertexFormat();
+        currMesh->m_NormalsEnabled = vertexData.HasNormals();
+        currMesh->m_TexCoordsEnabled = vertexData.HasTexCoords();
         currMesh->m_VertexBuffer = VertexBuffer(device, vertexData);
-        currMesh->m_VertexShader = GetVertexShader(device);
-        currMesh->m_PixelShader = GetPixelShader(device);
+        currMesh->m_VertexShader = BasicVertexShaderStorage::GetInstance().GetShader(BasicVertexShaderStorage::NORMALS_ENABLED | BasicVertexShaderStorage::TEXCOORDS_ENABLED);
+        currMesh->m_PixelShader = BasicPixelShaderStorage::GetInstance().GetShader(BasicPixelShaderStorage::NORMALS_ENABLED | BasicPixelShaderStorage::TEXCOORDS_ENABLED);
         currMesh->m_InputLayout = GraphicsInputLayout(device, vertexFormat, currMesh->m_VertexShader);
         currMesh->m_VertexCount = vertexData.GetNumVertexes();
         BasicVSConsts temp;
@@ -148,8 +150,8 @@ public:
             }
 
             currMesh->m_VertexBuffer = VertexBuffer(device, vertexData);
-            currMesh->m_VertexShader = GetVertexShader(device);
-            currMesh->m_PixelShader  = GetPixelShader(device);
+            currMesh->m_VertexShader = BasicVertexShaderStorage::GetInstance().GetShader(BasicVertexShaderStorage::NORMALS_ENABLED | BasicVertexShaderStorage::TEXCOORDS_ENABLED);
+            currMesh->m_PixelShader  = BasicPixelShaderStorage::GetInstance().GetShader(BasicPixelShaderStorage::NORMALS_ENABLED | BasicPixelShaderStorage::TEXCOORDS_ENABLED);
             currMesh->m_InputLayout = GraphicsInputLayout(device, vertexFormat, currMesh->m_VertexShader);
             currMesh->m_VertexCount = vertexData.GetNumVertexes();
             BasicVSConsts temp;
@@ -195,7 +197,7 @@ public:
 
         return { GetPrimCount(), 1};
     }
-    RenderStatistics RenderInstanced(GraphicsDevice& device, Camera& camera, GraphicsBuffer& argsBuffer, size_t bufferOffset, GraphicsBuffer& instancesBuffer)
+    RenderStatistics RenderInstanced(GraphicsDevice& device, Camera& camera, GraphicsBuffer& argsBuffer, size_t bufferOffset, GraphicsBuffer& instancesBuffer, size_t instancesOffset)
     {
         size_t shaderFlags = BasicVertexShaderStorage::INSTANCED;
         if (m_NormalsEnabled)
@@ -203,24 +205,25 @@ public:
         if (m_TexCoordsEnabled)
             shaderFlags = shaderFlags | BasicVertexShaderStorage::TEXCOORDS_ENABLED;
         m_VertexShader = BasicVertexShaderStorage::GetInstance().GetShader(shaderFlags);
-        m_PixelShader = BasicPixelShaderStorage::GetInstance().GetShader(shaderFlags ^ BasicVertexShaderStorage::INSTANCED);
+        m_PixelShader = BasicPixelShaderStorage::GetInstance().GetShader(shaderFlags);
         m_VertexShader.Bind(device);
         m_PixelShader.Bind(device);
         m_InputLayout.Bind(device);
         m_VertexBuffer.Bind(device);
-
-        ID3D11ShaderResourceView* instancesSRV = instancesBuffer.GetSRV();
-        device.GetD3D11DeviceContext()->VSSetShaderResources(0, 1, &instancesSRV);
 
         ID3D11ShaderResourceView* srv = m_Diffuse->GetSRV();
         device.GetD3D11DeviceContext()->PSSetShaderResources(0, 1, &srv);
         ID3D11SamplerState* sampler = GetTrilinearSampler(device);
         device.GetD3D11DeviceContext()->PSSetSamplers(0, 1, &sampler);
 
+        ID3D11ShaderResourceView* instancesSRV = instancesBuffer.GetSRV();
+        device.GetD3D11DeviceContext()->VSSetShaderResources(0, 1, &instancesSRV);
+
         BasicVSConsts consts;
         consts.view = camera.GetViewMatrix();
         consts.projection = camera.GetProjectionMatrix();
         consts.model = glm::identity<glm::mat4x4>();
+        consts.instancesOffset = instancesOffset;
 
         GraphicsConstantsBuffer<BasicVSConsts>& constsBuffer = m_ConstantsBuffer;
         constsBuffer.Update(device, consts);
@@ -228,6 +231,9 @@ public:
 
         device.GetD3D11DeviceContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         device.GetD3D11DeviceContext()->DrawInstancedIndirect(argsBuffer.GetBuffer(), bufferOffset);
+
+        instancesSRV = nullptr;
+        device.GetD3D11DeviceContext()->VSSetShaderResources(0, 1, &instancesSRV);
 
         return { 0, 1 };
     }

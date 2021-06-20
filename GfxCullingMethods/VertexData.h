@@ -89,6 +89,8 @@ struct VertexFormat
     size_t GetVertexSizeInBytesForSlot(index_t slotIndex) const;
 	void AddVertexProperty(const VertexPropertyPrototype& vertexPropertyPrototype);
 
+	bool HasSemantic(index_t semanticIndex);
+
 	std::vector<D3D11_INPUT_ELEMENT_DESC> GetD3D11InputElementDescs() const;
 
     std::vector<size_t> m_PerSlotVertexSizes;
@@ -119,6 +121,9 @@ public:
 
     void SetIndexes(const std::vector<uint32_t>& indexes);
     std::vector<uint32_t>& GetIndexes();
+
+	bool HasNormals();
+	bool HasTexCoords();
 
 	void Resize(count_t vertexNum);
 protected:

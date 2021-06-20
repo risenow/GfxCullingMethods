@@ -55,7 +55,7 @@ std::vector<D3D_FEATURE_LEVEL> GraphicsDevice::GetFeatureLevels(AcceptableFeatur
     switch (acceptableFeatureLevel)
     {
     case FEATURE_LEVEL_ONLY_D3D11:
-        featureLevels = { D3D_FEATURE_LEVEL_11_0 };
+        featureLevels = { D3D_FEATURE_LEVEL_11_1 };
         break;
     case FEATURE_LEVEL_ACTUAL:
         featureLevels = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0 };

@@ -82,6 +82,12 @@ std::vector<D3D11_INPUT_ELEMENT_DESC> VertexFormat::GetD3D11InputElementDescs() 
 
 	return inputElementDescs;
 }
+bool VertexFormat::HasSemantic(index_t sem)
+{
+    for (VertexProperty& prop : m_VertexProperties)
+        if (prop.m_Prototype.m_SemanticIndex == sem)
+            return true;
+}
 
 VertexData::VertexData() : m_NumVertexes(0)
 {}
@@ -131,7 +137,14 @@ void* VertexData::GetVertexPropertyDataPtr(const VertexProperty& vertexProperty)
 {
 	return GetVertexPropertyDataPtrForVertexWithIndex(0, vertexProperty);
 }
-
+bool VertexData::HasNormals()
+{
+    return m_VertexFormat.HasSemantic(VertexDataSemantics_PureNormal);
+}
+bool VertexData::HasTexCoords()
+{
+    return m_VertexFormat.HasSemantic(VertexDataSemantics_PureTexCoord);
+}
 void VertexData::SetIndexes(const std::vector<uint32_t>& indexes)
 {
     m_Indexes = indexes;

@@ -21,6 +21,7 @@
 #include "Portal.h"
 #include "BasicVertexShaderStorage.h"
 #include "BasicPixelShaderStorage.h"
+#include "GPUDrivenRenderer.h"
 #include "DemoScene1Generate.h"
 #include "randomutils.h"
 #include "basicvsconstants.h"
@@ -101,7 +102,7 @@ int main()
 
     DisplayAdaptersList displayAdapters;
 
-    GraphicsDevice device(D3D11DeviceCreationFlags(false, true), FEATURE_LEVEL_ONLY_D3D11, nullptr);
+    GraphicsDevice device(D3D11DeviceCreationFlags(true, true), FEATURE_LEVEL_ONLY_D3D11, displayAdapters.GetAdapter(0));
 
     static const std::string WindowTitle = "Culling techniques";
     Window window(WindowTitle, 1, 1, 1024, 712);
@@ -112,6 +113,7 @@ int main()
     BasicPixelShaderStorage::GetInstance().Load(device);
 
     ImmediateRenderer immediateRenderer(device);
+    GPUDrivenRenderer renderer(device);
 
     D3D11_RASTERIZER_DESC rastState;
     rastState.AntialiasedLineEnable = FALSE;
@@ -162,13 +164,23 @@ int main()
 
     LinearFrustumVisibility referenceVisibility({});
 
+    Scene scene;
+
     SuperMesh* roomMesh;
     SuperMesh* mesh;
     std::vector<SuperMesh*> subMeshes;
-    Scene scene;
-    DemoScene1Generate(device, textureCollection, scene, mesh, subMeshes, roomMesh);
+    std::vector<SuperMeshInstance> meshInsts;
+    DemoScene1GenerateFor(device, textureCollection, meshInsts, mesh, subMeshes, roomMesh);
 
-    GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
+    renderer.Consume(device, meshInsts);
+   /* SuperMesh* roomMesh;
+    SuperMesh* mesh;
+    std::vector<SuperMesh*> subMeshes;
+    Scene scene;
+    DemoScene1Generate(device, textureCollection, scene, mesh, subMeshes, roomMesh);*/
+
+    //GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
+    GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth(), window.GetHeight()));
     SuperViewport superViewport1(viewport1, camera1, &scene);
 
     GraphicsViewport viewport2(BoundRect(Point2D(window.GetWidth() / 2, 0), window.GetWidth() / 2, window.GetHeight()));
@@ -181,24 +193,37 @@ int main()
 
     while (!window.IsClosed())
     {
-        superViewport1.Update();
-        superViewport2.Update();
+        //superViewport1.Update();
+        //superViewport2.Update();
 
-        immediateRenderer.OnFrameBegin(device);
-
+        //immediateRenderer.OnFrameBegin(device);
+        renderer.OnFrameBegin(device);
         glm::vec3 cam1Pos = camera1.GetPosition();
         camera2.SetPosition(glm::vec3(cam1Pos.x, Camera2FixedY, cam1Pos.z));
 
         pawnInstance->SetTransform(CreatePawnTranform(camera1));
 
-        RenderStatistics stats = superViewport1.Render(device, colorTarget, depthTarget);
+        viewport1.Bind(device);
+        ID3D11RenderTargetView* colorTargetView = colorTarget.GetView();
+        ID3D11DepthStencilView* depthView = depthTarget.GetView();
+        device.GetD3D11DeviceContext()->OMSetRenderTargets(1, &colorTargetView, depthView);
+
+        if (true)
+        {
+            glm::vec4 clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
+            device.GetD3D11DeviceContext()->ClearRenderTargetView(colorTargetView, (float*)&clearColor);
+            device.GetD3D11DeviceContext()->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        }
+
+        renderer.Render(device, camera1);
+        /*RenderStatistics stats = superViewport1.Render(device, colorTarget, depthTarget);
 
         superViewport2.Render(device, colorTarget, depthTarget, false); //hack to setup second viewport render state
-        scene.Render(device, camera2, true); // render with this renderstate(rendertargets, depthtargets, etc)
+        scene.Render(device, camera2, true); // render with this renderstate(rendertargets, depthtargets, etc)*/
 
-        immediateRenderer.OnFrameEnd(device, camera2, colorTarget, depthTarget);
+        //immediateRenderer.OnFrameEnd(device, camera2, colorTarget, depthTarget);
 
-        window.SetTitle(WindowTitle + " " + std::to_string(stats.primCount) + " " + std::to_string(stats.drawCallsCount));
+        //window.SetTitle(WindowTitle + " " + std::to_string(stats.primCount) + " " + std::to_string(stats.drawCallsCount));
 
         swapchain.Present();
         device.OnPresent();

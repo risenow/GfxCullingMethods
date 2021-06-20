@@ -13,7 +13,8 @@ public:
         m_ShaderFile = L"basicps.hlsl";
         BasicPixelShaderStorage::NORMALS_ENABLED = 1 << 0;
         BasicPixelShaderStorage::TEXCOORDS_ENABLED = 1 << 1;
-        m_MacroSet = { GraphicsShaderMacro("NORMALS_ENABLED", "1"), GraphicsShaderMacro("TEXCOORDS_ENABLED", "1") };
+        BasicPixelShaderStorage::INSTANCED = 1 << 2;
+        m_MacroSet = { GraphicsShaderMacro("NORMALS_ENABLED", "1"), GraphicsShaderMacro("TEXCOORDS_ENABLED", "1"),  GraphicsShaderMacro("INSTANCED", "1") };
     }
     void Load(GraphicsDevice& device)
     {
@@ -22,5 +23,6 @@ public:
 
     static size_t NORMALS_ENABLED;
     static size_t TEXCOORDS_ENABLED;
+    static size_t INSTANCED;
 
 };

@@ -5,3 +5,4 @@
 #include "randomutils.h"
 
 void DemoScene1Generate(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, Scene& scene, SuperMesh*& mesh, std::vector<SuperMesh*>& subMeshes, SuperMesh*& indoorMesh1);
+void DemoScene1GenerateFor(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, std::vector<SuperMeshInstance>& meshInsts, SuperMesh*& mesh, std::vector<SuperMesh*>& subMeshes, SuperMesh*& indoorMesh1);

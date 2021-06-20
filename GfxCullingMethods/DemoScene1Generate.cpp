@@ -329,3 +329,35 @@ void DemoScene1Generate(GraphicsDevice& device, GraphicsTextureCollection& textu
 
         scene.ConsumeRooms({ room1 });
 }
+
+void DemoScene1GenerateFor(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, std::vector<SuperMeshInstance>& meshInsts, SuperMesh*& mesh, std::vector<SuperMesh*>& subMeshes, SuperMesh*& indoorMesh1)
+{
+    mesh = SuperMesh::FromFile(device, textureCollection, "Data/SchoolGirlOBJ/D0208059.obj");
+    subMeshes.resize(mesh->GetSubMeshesCount());
+    for (size_t i = 0; i < mesh->GetSubMeshesCount(); i++)
+        subMeshes[i] = new SuperMesh({ mesh->GetSubMesh(i) });
+
+    //for (int n = 1; n < 50; n++)
+    int n = 4;
+    {
+
+        int objsM = 10;
+        for (size_t i = 0; i < n * objsM; i++) //x38
+        {
+            glm::vec3 pos = RandomFromTo3(-650.0f, 650.0f);
+            glm::mat4x4 transform = glm::translate(glm::identity<glm::mat4x4>(), pos);
+
+            for (size_t j = 0; j < subMeshes.size(); j++)
+            {
+                SuperMeshInstance inst = SuperMeshInstance(subMeshes[j], transform);
+
+                meshInsts.push_back(inst);
+            }
+        }
+
+
+        //room1->Clear();
+    }
+
+    indoorMesh1 = nullptr;
+}

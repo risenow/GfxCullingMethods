@@ -2,27 +2,22 @@
 #include "dxlogicsafety.h"
 #include "logicsafety.h"
 
-unsigned int BindFlagsToD3D11BindFlags(GraphicsBuffer::BindFlags bindFlags)
+unsigned int BindFlagsToD3D11BindFlags(size_t bindFlags)
 {
-    switch (bindFlags)
-    {
-    case GraphicsBuffer::BindFlag_Vertex:
-        return D3D11_BIND_VERTEX_BUFFER;
-        break;
-    case GraphicsBuffer::BindFlag_Index:
-        return D3D11_BIND_INDEX_BUFFER;
-        break;
-    case GraphicsBuffer::BindFlag_Constant:
-        return D3D11_BIND_CONSTANT_BUFFER;
-        break;
-	case GraphicsBuffer::BindFlag_Shader:
-		return D3D11_BIND_SHADER_RESOURCE;
-		break;
-    default:
-        popAssert(false);
-        return -1;
-        break;
-    }
+    unsigned int flags = 0;
+    if (bindFlags & GraphicsBuffer::BindFlag_Vertex)
+        flags |= D3D11_BIND_VERTEX_BUFFER;
+    if (bindFlags & GraphicsBuffer::BindFlag_Index)
+        flags |= D3D11_BIND_INDEX_BUFFER;
+    if (bindFlags & GraphicsBuffer::BindFlag_Constant)
+        flags |= D3D11_BIND_CONSTANT_BUFFER;
+    if (bindFlags & GraphicsBuffer::BindFlag_Shader)
+        flags |= D3D11_BIND_SHADER_RESOURCE;
+    if (bindFlags & GraphicsBuffer::BindFlag_UAV)
+        flags |= D3D11_BIND_UNORDERED_ACCESS;
+
+
+    return flags;
 }
 
 void CalculateD3D11UsageAndCPUAccessFlags(const GraphicsBuffer::UsageFlags usageFlags, D3D11_USAGE& d3d11UsageFlags, unsigned int& d3d11CPUAccessFlags)
@@ -51,28 +46,21 @@ void CalculateD3D11UsageAndCPUAccessFlags(const GraphicsBuffer::UsageFlags usage
     }
 }
 
-unsigned int MiscFlagToD3D11MiscFlag(GraphicsBuffer::MiscFlags miscFlag)
+unsigned int MiscFlagToD3D11MiscFlag(size_t miscFlag)
 {
-    switch (miscFlag)
-    {
-    case GraphicsBuffer::MiscFlag_Default:
-        return 0;
-        break;
-	case GraphicsBuffer::MiscFlag_Structured:
-		return D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		break;
-    case GraphicsBuffer::MiscFlag_DrawIndirectArgs:
-        return D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-        break;
-    default:
-        popAssert(false);
-        return -1;
-        break;
-    }
+    size_t flags = 0;
+    if (miscFlag & GraphicsBuffer::MiscFlag_Structured)
+        flags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    if (miscFlag & GraphicsBuffer::MiscFlag_DrawIndirectArgs)
+        flags |= D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+    if (miscFlag & GraphicsBuffer::MiscFlag_Raw)
+        flags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+
+    return flags;
 }
 
-void CreateDesc(const size_t size, const GraphicsBuffer::BindFlags bindFlag,
-                const GraphicsBuffer::UsageFlags usageFlag, const GraphicsBuffer::MiscFlags miscFlag, void* data, size_t structureByteStride,
+void CreateDesc(const size_t size, size_t bindFlag,
+                const GraphicsBuffer::UsageFlags usageFlag, size_t miscFlag, void* data, size_t structureByteStride,
                 D3D11_BUFFER_DESC& bufferDesc, D3D11_SUBRESOURCE_DATA& resourceData)
 {
     bufferDesc.ByteWidth = size;
@@ -96,8 +84,8 @@ void CreateSRVDesc(size_t size, size_t numElements, size_t structureByteStride, 
     desc.Buffer.ElementWidth = numElements;//structureByteStride ? structureByteStride : size;
 }
 
-GraphicsBuffer::GraphicsBuffer(GraphicsDevice& device, size_t size, BindFlags bindFlag,
-                                UsageFlags usageFlag, MiscFlags miscFlag/* = MiscFlag_Default*/,
+GraphicsBuffer::GraphicsBuffer(GraphicsDevice& device, size_t size, size_t bindFlag,
+                                UsageFlags usageFlag, size_t miscFlag/* = MiscFlag_Default*/,
                                 void* data/* = nullptr*/, size_t numElements, size_t structureByteStride/* = 0*/, DXGI_FORMAT format/* = DXGI_FORMAT_UNKNOWN*/) : m_SRV(nullptr), m_Buffer(nullptr)
 {
     D3D11_BUFFER_DESC bufferDesc;
@@ -106,7 +94,7 @@ GraphicsBuffer::GraphicsBuffer(GraphicsDevice& device, size_t size, BindFlags bi
     CreateDesc(size, bindFlag, usageFlag, miscFlag, data, structureByteStride, bufferDesc, subresourceData);
     D3D_HR_OP(device.GetD3D11Device()->CreateBuffer(&bufferDesc, (data) ? &subresourceData : nullptr, (ID3D11Buffer**)&m_Buffer));
 
-    if (bindFlag != BindFlag_Vertex && bindFlag != BindFlag_Constant && bindFlag != BindFlag_Index)
+    if (bindFlag != BindFlag_Vertex && bindFlag != BindFlag_Constant && bindFlag != BindFlag_Index && !(miscFlag & MiscFlag_DrawIndirectArgs))
     {
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
         CreateSRVDesc(size, numElements, structureByteStride, format, srvDesc);

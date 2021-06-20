@@ -38,7 +38,7 @@ struct AABB
     {
         glm::vec3 v = m_Max - m_Min;
         float maxSide = std::max(std::max(v.x, v.y), v.z);
-        return glm::vec4(m_Centroid.x, m_Centroid.y, m_Centroid.z, maxSide);
+        return glm::vec4(m_Centroid.x, m_Centroid.y, m_Centroid.z, maxSide/2.0f);
     }
     glm::vec3 GetPoint(int i) const
     {
