@@ -5,7 +5,9 @@
 #include "DrawInstancedIndirectArgs.h"
 #include "GraphicsBuffer.h"
 #include "GraphicsConstantsBuffer.h"
+#include "ResolveCopyDepth.h"
 #include "CullConsts.h"
+#include "GenHiZConsts.h"
 #include <unordered_set>
 #include <unordered_map>
 
@@ -28,9 +30,15 @@ public:
     GPUDrivenRenderer(GraphicsDevice& device) 
     {
         m_CullShader = GraphicsShader::FromFile(device, GraphicsShaderType_Compute, L"cullcs.hlsl");
-        CullConsts consts;
-        ZeroMemory(&consts, sizeof(consts));
-        m_CullConstantBuffer = GraphicsConstantsBuffer<CullConsts>(device, consts);
+        m_HiZGenShader = GraphicsShader::FromFile(device, GraphicsShaderType_Compute, L"genhizscs.hlsl");
+
+        CullConsts constsCull;
+        ZeroMemory(&constsCull, sizeof(constsCull));
+        m_CullConstantBuffer = GraphicsConstantsBuffer<CullConsts>(device, constsCull);
+
+        HiZConsts constsHiZ;
+        ZeroMemory(&constsHiZ, sizeof(constsHiZ));
+        m_HiZConstantsBuffer = GraphicsConstantsBuffer<HiZConsts>(device, constsHiZ);
     }
 
     void Consume(GraphicsDevice& device, const std::vector<SuperMeshInstance>& insts)
@@ -94,6 +102,132 @@ public:
         device.GetD3D11DeviceContext()->CopyResource(m_IndirectBuffer.GetBuffer(), m_CleanIndirectBuffer.GetBuffer());
     }
 
+
+    void Render(GraphicsDevice& device, Camera& camera, ColorSurface& colorTarget, DepthSurface& depthTarget)
+    {
+        ID3D11RenderTargetView* view[] = { nullptr };
+        device.GetD3D11DeviceContext()->OMSetRenderTargets(1, view, nullptr);
+
+        GenerateHiZ(device, *depthTarget.GetTexture());
+
+        Cull(device, camera);
+
+        ID3D11RenderTargetView* colorTargetView = colorTarget.GetView();
+        ID3D11DepthStencilView* depthView = depthTarget.GetView();
+        device.GetD3D11DeviceContext()->OMSetRenderTargets(1, &colorTargetView, depthView);
+
+        if (true)
+        {
+            glm::vec4 clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
+            device.GetD3D11DeviceContext()->ClearRenderTargetView(colorTargetView, (float*)&clearColor);
+            device.GetD3D11DeviceContext()->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        }
+
+        size_t offset = 0;
+        int instancesOffset = 0;
+        for (BaseMesh& baseMesh : m_BaseMeshes)
+        {
+            Mesh* mesh = baseMesh.mesh;
+
+            mesh->RenderInstanced(device, camera, m_IndirectBuffer, offset, m_RenderInstancesBuffer, instancesOffset);
+            instancesOffset += baseMesh.instsCount;
+            offset += sizeof(D3D11_DRAW_INSTANCED_INDIRECT_ARGS);
+        }
+    }
+private:
+    void ReinitHiZTexture(GraphicsDevice& device, const Texture2D& depth)
+    {
+        DXGI_SAMPLE_DESC sampleDesc = { 1, 0 };
+
+        for (size_t mip = 0; mip < m_MipsSRV.size(); mip++)
+        {
+            if (m_MipsSRV[mip])
+                m_MipsSRV[mip]->Release();
+            if (m_MipsUAV[mip])
+                m_MipsUAV[mip]->Release();
+            m_MipsSRV[mip] = nullptr;
+            m_MipsUAV[mip] = nullptr;
+        }
+        m_HiZ.ReleaseGPUData();
+
+        size_t mipCnt = log(std::min(depth.GetWidth(), depth.GetHeight())) / log(2) + 1;
+        m_HiZ = Texture2D(device, depth.GetWidth(), depth.GetHeight(), mipCnt, 1, DXGI_FORMAT_R32_FLOAT, sampleDesc, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, 0, 0);
+        m_MipsUAV.resize(mipCnt);
+        m_MipsSRV.resize(mipCnt);
+
+        InitMipsShaderResources(device);
+    }
+
+    void GenerateHiZ(GraphicsDevice& device, const Texture2D& depth)
+    {
+        if (!m_HiZ.IsValid())
+        {
+            ReinitHiZTexture(device, depth);
+        }
+
+        if (m_HiZ.GetWidth() != depth.GetWidth() || m_HiZ.GetHeight() != depth.GetHeight())
+        {
+            ReinitHiZTexture(device, depth);
+        }
+
+        ResolveCopyDepth(device, m_HiZ, depth);
+
+        size_t mipsLeft = m_MipsUAV.size() - 1;
+        for (size_t mip = 0; mip < m_MipsUAV.size() - 1; )
+        {
+            size_t mipsToGen = std::min(mipsLeft, 4u);
+
+            HiZConsts consts;
+            consts.numMips = mipsToGen;
+            consts.srcMipLvl = mip;
+
+            m_HiZConstantsBuffer.Update(device, consts);
+
+            m_HiZGenShader.Bind(device);
+            m_HiZConstantsBuffer.Bind(device, GraphicsShaderMask_Compute);
+
+            ID3D11ShaderResourceView* mip0 = m_MipsSRV[mip];
+            ID3D11UnorderedAccessView* uavs[4];
+            for (size_t i = 0; i < mipsToGen; i++) 
+            {
+                uavs[i] = m_MipsUAV[mip + 1 + i];
+            }
+
+            device.GetD3D11DeviceContext()->CSSetShaderResources(0, 1, &mip0);
+            device.GetD3D11DeviceContext()->CSSetUnorderedAccessViews(0, mipsToGen, uavs, nullptr);
+
+            device.GetD3D11DeviceContext()->Dispatch(ceil((float)(std::max(m_HiZ.GetWidth() >> (mip + 1), 1u)) / 8.0f), ceil((float)(std::max(m_HiZ.GetHeight() >> (mip + 1), 1u)) / 8.0f), 1);
+
+            mip += mipsToGen;
+            mipsLeft -= mipsToGen;
+
+            ZeroMemory(uavs, sizeof(uavs));
+            mip0 = nullptr;
+            device.GetD3D11DeviceContext()->CSSetShaderResources(0, 1, &mip0);
+            device.GetD3D11DeviceContext()->CSSetUnorderedAccessViews(0, mipsToGen, uavs, nullptr);
+        }
+        
+    }
+
+    void InitMipsShaderResources(GraphicsDevice& device)
+    {
+        for (size_t mip = 0; mip < m_HiZ.GetMipsCount(); mip++)
+        {
+            D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+            uavDesc.Texture2D.MipSlice = mip;
+            uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+            device.GetD3D11Device()->CreateUnorderedAccessView((ID3D11Texture2D*)(m_HiZ.GetD3D11Texture2D()), (D3D11_UNORDERED_ACCESS_VIEW_DESC*)&uavDesc, (ID3D11UnorderedAccessView**)&m_MipsUAV[mip]);
+
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+            srvDesc.Texture2D.MipLevels = 1;
+            srvDesc.Texture2D.MostDetailedMip = mip;
+            srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            device.GetD3D11Device()->CreateShaderResourceView((ID3D11Texture2D*)(m_HiZ.GetD3D11Texture2D()), (D3D11_SHADER_RESOURCE_VIEW_DESC*)&srvDesc, (ID3D11ShaderResourceView**)&m_MipsSRV[mip]);
+        }
+    }
+
     void Cull(GraphicsDevice& device, Camera& camera)
     {
         Camera::Frustum fr = Camera::Frustum(camera);
@@ -111,12 +245,12 @@ public:
         ID3D11ShaderResourceView* refInstancesSRV = m_RefInstancesBuffer.GetSRV();
         ID3D11UnorderedAccessView* uavs[] = { m_RenderInstancesBuffer.GetUAV(), m_IndirectBuffer.GetUAV() };
 
-        unsigned int counts[2] = {0, 0};
+        unsigned int counts[2] = { 0, 0 };
         device.GetD3D11DeviceContext()->CSSetShaderResources(0, 1, &refInstancesSRV);
         device.GetD3D11DeviceContext()->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);
 
         m_CullShader.Bind(device);
-        
+
         device.GetD3D11DeviceContext()->Dispatch(ceil((float)m_InstanceData.size() / 256.0f), 1, 1);
 
         refInstancesSRV = nullptr;
@@ -127,22 +261,8 @@ public:
         device.GetD3D11DeviceContext()->CSSetShader(nullptr, nullptr, 0);
     }
 
-    void Render(GraphicsDevice& device, Camera& camera)
-    {
-        Cull(device, camera);
+    //void Copy
 
-        size_t offset = 0;
-        int instancesOffset = 0;
-        for (BaseMesh& baseMesh : m_BaseMeshes)
-        {
-            Mesh* mesh = baseMesh.mesh;
-
-            mesh->RenderInstanced(device, camera, m_IndirectBuffer, offset, m_RenderInstancesBuffer, instancesOffset);
-            instancesOffset += baseMesh.instsCount;
-            offset += sizeof(D3D11_DRAW_INSTANCED_INDIRECT_ARGS);
-        }
-    }
-private:
     std::vector<BaseMesh> m_BaseMeshes;
     std::vector<D3D11_DRAW_INSTANCED_INDIRECT_ARGS > m_IndirectArgs;
     std::vector<Instance> m_InstanceData;
@@ -157,5 +277,12 @@ private:
     StructuredBuffer<Instance> m_InstancesBuffer;
     GraphicsConstantsBuffer<CullConsts> m_CullConstantBuffer;
 
+    Texture2D m_HiZ;
+    GraphicsConstantsBuffer<HiZConsts> m_HiZConstantsBuffer;
+    std::vector<ID3D11UnorderedAccessView*> m_MipsUAV;
+    std::vector<ID3D11ShaderResourceView*> m_MipsSRV;
+
+    GraphicsShader m_HiZGenShader;
     GraphicsShader m_CullShader;
+    GraphicsShader m_CopyDepth;
 };

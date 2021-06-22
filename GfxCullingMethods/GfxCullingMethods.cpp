@@ -21,6 +21,7 @@
 #include "Portal.h"
 #include "BasicVertexShaderStorage.h"
 #include "BasicPixelShaderStorage.h"
+#include "DepthResolveCopyShaderStorage.h"
 #include "GPUDrivenRenderer.h"
 #include "DemoScene1Generate.h"
 #include "randomutils.h"
@@ -111,6 +112,7 @@ int main()
 
     BasicVertexShaderStorage::GetInstance().Load(device);
     BasicPixelShaderStorage::GetInstance().Load(device);
+    DepthResolveCopyShaderStorage::GetInstance().Load(device);
 
     ImmediateRenderer immediateRenderer(device);
     GPUDrivenRenderer renderer(device);
@@ -155,7 +157,7 @@ int main()
     device.GetD3D11DeviceContext()->OMSetDepthStencilState(noDepthStencilState, 0);
 
     ColorSurface colorTarget = swapchain.GetBackBufferSurface();
-    DepthSurface depthTarget(device, colorTarget.GetWidth(), colorTarget.GetHeight(), 1, 1, DXGI_FORMAT_D24_UNORM_S8_UINT, GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, MultisampleType::MULTISAMPLE_TYPE_4X), D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL, 0, 0);
+    DepthSurface depthTarget(device, colorTarget.GetWidth(), colorTarget.GetHeight(), 1, 1, DXGI_FORMAT_R24G8_TYPELESS, GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, MultisampleType::MULTISAMPLE_TYPE_4X), D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, 0, 0);
 
     Camera camera1 = CreateInitialCamera((float)window.GetWidth() / (float)window.GetHeight());
     Camera camera2 = CreateInitialCamera2((float)window.GetWidth() / (float)window.GetHeight());
@@ -204,18 +206,9 @@ int main()
         pawnInstance->SetTransform(CreatePawnTranform(camera1));
 
         viewport1.Bind(device);
-        ID3D11RenderTargetView* colorTargetView = colorTarget.GetView();
-        ID3D11DepthStencilView* depthView = depthTarget.GetView();
-        device.GetD3D11DeviceContext()->OMSetRenderTargets(1, &colorTargetView, depthView);
+        
 
-        if (true)
-        {
-            glm::vec4 clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
-            device.GetD3D11DeviceContext()->ClearRenderTargetView(colorTargetView, (float*)&clearColor);
-            device.GetD3D11DeviceContext()->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        }
-
-        renderer.Render(device, camera1);
+        renderer.Render(device, camera1, colorTarget, depthTarget);
         /*RenderStatistics stats = superViewport1.Render(device, colorTarget, depthTarget);
 
         superViewport2.Render(device, colorTarget, depthTarget, false); //hack to setup second viewport render state

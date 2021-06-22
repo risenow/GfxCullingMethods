@@ -4,13 +4,12 @@
 #include "dxlogicsafety.h"
 #include <d3dcommon.h>
 
-Texture2D::Texture2D() {}
+Texture2D::Texture2D() : m_Texture(nullptr) {}
 
 DXGI_FORMAT GetFormatSRV(DXGI_FORMAT format, UINT bindFlags)
 {
-    if (bindFlags & D3D11_BIND_DEPTH_STENCIL)
-        if (format == DXGI_FORMAT_R24G8_TYPELESS)
-            return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    if (format == DXGI_FORMAT_R24G8_TYPELESS)
+        return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
     return format;
 }
 Texture2D::Texture2D(GraphicsDevice& device, ID3D11Texture2D* texture, ID3D11ShaderResourceView* srv) : m_Texture(texture), m_SRV(srv), m_UAV(nullptr)
@@ -71,21 +70,22 @@ Texture2D::Texture2D(GraphicsDevice& device, size_t width, size_t height, unsign
 
     D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
     uavDesc.Texture2D.MipSlice = 0;
-    uavDesc.Format = GetFormatSRV(m_DXGIFormat, m_BindFlags);//m_DXGIFormat;
+    uavDesc.Format = GetFormatSRV(m_DXGIFormat, m_BindFlags);
     uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 
     if ((bindFlags & D3D11_BIND_SHADER_RESOURCE ))
         device.GetD3D11Device()->CreateShaderResourceView((ID3D11Texture2D*)(m_Texture), (D3D11_SHADER_RESOURCE_VIEW_DESC*)&srvDesc, (ID3D11ShaderResourceView**)&m_SRV);
-    if (!(bindFlags & D3D11_BIND_DEPTH_STENCIL) && (bindFlags & D3D11_BIND_UNORDERED_ACCESS ))
+    if (!(bindFlags & D3D11_BIND_DEPTH_STENCIL) && 
+        (bindFlags & D3D11_BIND_UNORDERED_ACCESS ))
         device.GetD3D11Device()->CreateUnorderedAccessView((ID3D11Texture2D*)(m_Texture), (D3D11_UNORDERED_ACCESS_VIEW_DESC*)& uavDesc, (ID3D11UnorderedAccessView * *)& m_UAV);
 }
 
-ID3D11ShaderResourceView* Texture2D::GetSRV()
+ID3D11ShaderResourceView* Texture2D::GetSRV() const
 {
     return m_SRV;
 }
 
-ID3D11UnorderedAccessView* Texture2D::GetUAV()
+ID3D11UnorderedAccessView* Texture2D::GetUAV() const
 {
     return m_UAV;
 }
@@ -168,14 +168,18 @@ bool Texture2D::IsValid() const
 
 void Texture2D::ReleaseGPUData() 
 {
-    int rc = m_Texture->Release();//we ve got auto release, right? wtf? errors got without this line, to investigate
-    m_Texture = nullptr;
+    int rc = 0;
     if (m_SRV)
         rc = m_SRV->Release();
     m_SRV = nullptr;
     if (m_UAV)
         rc = m_UAV->Release();
     m_UAV = nullptr;
+    
+    if (m_Texture)
+        rc = m_Texture->Release();//we ve got auto release, right? wtf? errors got without this line, to investigate
+    m_Texture = nullptr;
+    
 }
 
 Texture2D Texture2DHelper::CreateCommonTexture(GraphicsDevice& device, size_t width, size_t height,

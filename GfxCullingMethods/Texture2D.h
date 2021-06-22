@@ -22,11 +22,13 @@ public:
     size_t GetConsumedVideoMemorySize();
     size_t GetSamplesCount() const { return m_SampleDesc.Count; }
     DXGI_FORMAT GetFormat() const { return m_DXGIFormat; }
+    size_t GetMipsCount() const { return m_MipLevels; }
+    DXGI_SAMPLE_DESC GetSampleDescr() const { return m_SampleDesc; }
 
     ID3D11Texture2D* GetD3D11Texture2D() const;
 
-    ID3D11ShaderResourceView* GetSRV();
-    ID3D11UnorderedAccessView* GetUAV();
+    ID3D11ShaderResourceView* GetSRV() const;
+    ID3D11UnorderedAccessView* GetUAV() const;
 
     bool IsValid() const;
 

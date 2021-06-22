@@ -150,6 +150,7 @@
     <ClCompile Include="BasicVertexShaderStorage.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DemoScene1Generate.cpp" />
+    <ClCompile Include="DepthResolveCopyShaderStorage.cpp" />
     <ClCompile Include="DisplayAdaptersList.cpp" />
     <ClCompile Include="dxerrorcodesinterpreteutil.cpp" />
     <ClCompile Include="GfxCullingMethods.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="pathutils.cpp" />
     <ClCompile Include="Portal.cpp" />
     <ClCompile Include="randomutils.cpp" />
+    <ClCompile Include="ResolveCopyDepth.cpp" />
     <ClCompile Include="strutils.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="timeutils.cpp" />
@@ -193,10 +195,12 @@
     <ClInclude Include="ConstantsPreprocessing.h" />
     <ClInclude Include="CullConsts.h" />
     <ClInclude Include="DemoScene1Generate.h" />
+    <ClInclude Include="DepthResolveCopyShaderStorage.h" />
     <ClInclude Include="DisplayAdaptersList.h" />
     <ClInclude Include="DrawInstancedIndirectArgs.h" />
     <ClInclude Include="dxerrorcodesinterpreteutil.h" />
     <ClInclude Include="dxlogicsafety.h" />
+    <ClInclude Include="GenHiZConsts.h" />
     <ClInclude Include="gfxutils.h" />
     <ClInclude Include="GPUDrivenRenderer.h" />
     <ClInclude Include="GraphicsBuffer.h" />
@@ -209,12 +213,14 @@
     <ClInclude Include="GraphicsTextureCollection.h" />
     <ClInclude Include="GraphicsViewport.h" />
     <ClInclude Include="helperutil.h" />
+    <ClInclude Include="HiZGenShaderStorage.h" />
     <ClInclude Include="ImmediateRenderer.h" />
     <ClInclude Include="LoPoApproxGeom.h" />
     <ClInclude Include="OctreeFrustumVisibility.h" />
     <ClInclude Include="PagedPoolSTDAllocator.h" />
     <ClInclude Include="Portal.h" />
     <ClInclude Include="randomutils.h" />
+    <ClInclude Include="ResolveCopyDepth.h" />
     <ClInclude Include="SBB.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="serializeutils.h" />

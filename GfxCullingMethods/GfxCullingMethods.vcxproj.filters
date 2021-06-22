@@ -120,6 +120,12 @@
     <ClCompile Include="BasicPixelShaderStorage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DepthResolveCopyShaderStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResolveCopyDepth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GraphicsDevice.h">
@@ -318,6 +324,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CullConsts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenHiZConsts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HiZGenShaderStorage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthResolveCopyShaderStorage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResolveCopyDepth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
