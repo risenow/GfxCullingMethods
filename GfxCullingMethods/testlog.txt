@@ -1,10 +1,15 @@
-[TIME:264] Adapters enumerated:
-[TIME:265] Adapter index: 0
-[TIME:265] Description: NVIDIA GeForce GTX 1650 Ti
-[TIME:265] 
-[TIME:265] Adapter index: 1
-[TIME:265] Description: Microsoft Basic Render Driver
-[TIME:265] 
+[TIME:61] Adapters enumerated:
+[TIME:61] Adapter index: 0
+[TIME:61] Description: NVIDIA GeForce GTX 1650 Ti
+[TIME:61] 
+[TIME:61] Adapter index: 1
+[TIME:61] Description: Microsoft Basic Render Driver
+[TIME:61] 
 C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\copydepthcs.hlsl(20,15-29): warning X3206: 'Load': implicit truncation of vector type
 C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\copydepthcs.hlsl(23,20-34): warning X3206: 'Load': implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\genhizscs.hlsl(81,9-52): warning X3206: implicit truncation of vector type
+C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\cullcs.hlsl(119,8-29): warning X3206: implicit truncation of vector type
+C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\cullcs.hlsl(120,8-46): warning X3206: implicit truncation of vector type
+C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\cullcs.hlsl(121,8-46): warning X3206: implicit truncation of vector type
+C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\cullcs.hlsl(122,8-46): warning X3206: implicit truncation of vector type
+C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\cullcs.hlsl(97,15): warning X4000: use of potentially uninitialized variable (OcclusionCullSphere)
+C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\genhizscs.hlsl(115,9-52): warning X3206: implicit truncation of vector type

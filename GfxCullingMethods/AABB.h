@@ -13,6 +13,12 @@ struct AABB
     {
         m_Centroid = (m_Min + m_Max) * 0.5f;
     }
+    AABB(const glm::vec4& sbb)
+    {
+        m_Min = glm::vec3(sbb.x - sbb.w, sbb.y - sbb.w, sbb.z - sbb.w);
+        m_Max = glm::vec3(sbb.x + sbb.w, sbb.y + sbb.w, sbb.z + sbb.w);
+        m_Centroid = (m_Min + m_Max) * 0.5f;
+    }
     float Side()
     {
         return m_Max.x - m_Min.x;
@@ -37,8 +43,8 @@ struct AABB
     glm::vec4 GetSBB()
     {
         glm::vec3 v = m_Max - m_Min;
-        float maxSide = std::max(std::max(v.x, v.y), v.z);
-        return glm::vec4(m_Centroid.x, m_Centroid.y, m_Centroid.z, maxSide/2.0f);
+        float maxSide = glm::length(v);
+        return glm::vec4(m_Centroid.x, m_Centroid.y, m_Centroid.z, maxSide*0.5f);//2.0f);
     }
     glm::vec3 GetPoint(int i) const
     {

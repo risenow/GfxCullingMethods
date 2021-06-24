@@ -106,7 +106,7 @@ int main()
     GraphicsDevice device(D3D11DeviceCreationFlags(true, true), FEATURE_LEVEL_ONLY_D3D11, displayAdapters.GetAdapter(0));
 
     static const std::string WindowTitle = "Culling techniques";
-    Window window(WindowTitle, 1, 1, 1024, 712);
+    Window window(WindowTitle, 1, 1, 1024, 768);
     GraphicsSwapChain swapchain(device, window, MultisampleType::MULTISAMPLE_TYPE_4X);
     GraphicsTextureCollection textureCollection(device);
 
@@ -172,9 +172,10 @@ int main()
     SuperMesh* mesh;
     std::vector<SuperMesh*> subMeshes;
     std::vector<SuperMeshInstance> meshInsts;
-    DemoScene1GenerateFor(device, textureCollection, meshInsts, mesh, subMeshes, roomMesh);
+    std::vector<SuperMeshInstance> occluderMeshInsts;
+    DemoScene1GenerateFor(device, textureCollection, meshInsts, occluderMeshInsts, mesh, subMeshes, roomMesh);
 
-    renderer.Consume(device, meshInsts);
+    renderer.Consume(device, meshInsts, occluderMeshInsts);
    /* SuperMesh* roomMesh;
     SuperMesh* mesh;
     std::vector<SuperMesh*> subMeshes;
@@ -198,7 +199,7 @@ int main()
         //superViewport1.Update();
         //superViewport2.Update();
 
-        //immediateRenderer.OnFrameBegin(device);
+        immediateRenderer.OnFrameBegin(device);
         renderer.OnFrameBegin(device);
         glm::vec3 cam1Pos = camera1.GetPosition();
         camera2.SetPosition(glm::vec3(cam1Pos.x, Camera2FixedY, cam1Pos.z));
@@ -213,8 +214,17 @@ int main()
 
         superViewport2.Render(device, colorTarget, depthTarget, false); //hack to setup second viewport render state
         scene.Render(device, camera2, true); // render with this renderstate(rendertargets, depthtargets, etc)*/
+        for (size_t i = 0; i < meshInsts.size(); i++)
+        {
+            SuperMeshInstance& inst = meshInsts[i];
 
-        //immediateRenderer.OnFrameEnd(device, camera2, colorTarget, depthTarget);
+            if (inst.GetSuperMesh()->GetSubMesh(0) == renderer.m_BaseMeshes[14].mesh)
+            {
+                glm::vec4 v = inst.GetAABB().GetSBB();
+                immediateRenderer.WireframeAABB(AABB(inst.GetAABB().GetSBB()), glm::vec4(1.0, 0.0, 0.0, 1.0));
+            }
+        }
+        immediateRenderer.OnFrameEnd(device, camera1, colorTarget, depthTarget);
 
         //window.SetTitle(WindowTitle + " " + std::to_string(stats.primCount) + " " + std::to_string(stats.drawCallsCount));
 

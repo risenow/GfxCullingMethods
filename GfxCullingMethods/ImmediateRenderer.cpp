@@ -40,6 +40,7 @@ void ImmediateRenderer::OnFrameEnd(GraphicsDevice& device, Camera& camera, Color
     BasicVSConsts consts;
     consts.projection = camera.GetProjectionMatrix();
     consts.view = camera.GetViewMatrix();
+    consts.model = glm::identity<glm::mat4x4>();
     m_ConstantsBuffer.Update(device, consts);
 
     m_InputLayout.Bind(device);

@@ -24,6 +24,11 @@ public:
         AABB aabb = m_Mesh->GetAABB();
         return AABB(glm::vec3(m_Transform * glm::vec4(aabb.m_Min, 1.0)), glm::vec3(m_Transform * glm::vec4(aabb.m_Max, 1.0)));
     }
+    AABB GetSubAABB(size_t i)
+    {
+        AABB aabb = m_Mesh->GetSubMesh(i)->GetAABB();
+        return AABB(glm::vec3(m_Transform * glm::vec4(aabb.m_Min, 1.0)), glm::vec3(m_Transform * glm::vec4(aabb.m_Max, 1.0)));
+    }
 
     void SetTransform(const glm::mat4x4& transform)
     {

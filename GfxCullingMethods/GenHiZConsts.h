@@ -5,10 +5,10 @@
 
 DECLARE_CONSTANT_STRUCTURE HiZConsts
 {
+    DECLARE_UINT srcMipWidth;
+    DECLARE_UINT srcMipHeight;
     DECLARE_UINT srcMipLvl;
     DECLARE_UINT numMips;
-    DECLARE_UINT padding2;
-    DECLARE_UINT padding3;
 };
 
 #endif

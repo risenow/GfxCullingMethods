@@ -330,7 +330,7 @@ void DemoScene1Generate(GraphicsDevice& device, GraphicsTextureCollection& textu
         scene.ConsumeRooms({ room1 });
 }
 
-void DemoScene1GenerateFor(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, std::vector<SuperMeshInstance>& meshInsts, SuperMesh*& mesh, std::vector<SuperMesh*>& subMeshes, SuperMesh*& indoorMesh1)
+void DemoScene1GenerateFor(GraphicsDevice& device, GraphicsTextureCollection& textureCollection, std::vector<SuperMeshInstance>& meshInsts, std::vector<SuperMeshInstance>& occluders, SuperMesh*& mesh, std::vector<SuperMesh*>& subMeshes, SuperMesh*& occMesh)
 {
     mesh = SuperMesh::FromFile(device, textureCollection, "Data/SchoolGirlOBJ/D0208059.obj");
     subMeshes.resize(mesh->GetSubMeshesCount());
@@ -354,10 +354,55 @@ void DemoScene1GenerateFor(GraphicsDevice& device, GraphicsTextureCollection& te
                 meshInsts.push_back(inst);
             }
         }
-
-
-        //room1->Clear();
     }
 
-    indoorMesh1 = nullptr;
+    std::vector<VertexPropertyPrototype> vertexPropertyProtos = { VertexFormatHelper::PurePosPropProto(0, 0) };
+    vertexPropertyProtos.push_back(VertexFormatHelper::PureNormalPropProto(0, 0));
+    vertexPropertyProtos.push_back(VertexFormatHelper::PureTexCoordPropProto(0, 0));
+
+    VertexFormat vertexFormat(vertexPropertyProtos);
+    VertexData vertexData(vertexFormat, 6 * 8);
+    VertexProperty posDesc = vertexData.GetVertexPropertyByName(VertexDataSemantics_PurePos);
+    VertexProperty tcDesc = vertexData.GetVertexPropertyByName(VertexDataSemantics_PureTexCoord);
+    VertexProperty normsDesc = vertexData.GetVertexPropertyByName(VertexDataSemantics_PureNormal);
+
+    glm::vec3 dummyNormal = glm::vec3();
+    glm::vec2 dummyTc = glm::vec2();
+
+    int vx = 0;
+    float occWidth = 100.0f;
+    float occHeight = 100.0f;
+    float z = -650.0f;
+    glm::vec3 leftBottom = glm::vec3(-1.0f * occWidth, -1.0f * occHeight, z);
+    glm::vec3 rightBottom = glm::vec3(1.0f * occWidth, -1.0f * occHeight, z);
+    glm::vec3 leftTop = glm::vec3(-1.0f * occWidth, 1.0f * occHeight, z);
+    glm::vec3 rightTop = glm::vec3(1.0f * occWidth, 1.0f * occHeight, z);
+
+    PullVecToVertexData<glm::vec4>(vx, glm::vec4(leftBottom, 1.0f), vertexData, posDesc);
+    PullVecToVertexData<glm::vec3>(vx, dummyNormal, vertexData, normsDesc);
+    PullVecToVertexData<glm::vec2>(vx, dummyTc, vertexData, tcDesc); vx++;
+    PullVecToVertexData<glm::vec4>(vx, glm::vec4(rightBottom, 1.0f), vertexData, posDesc);
+    PullVecToVertexData<glm::vec3>(vx, dummyNormal, vertexData, normsDesc);
+    PullVecToVertexData<glm::vec2>(vx, dummyTc, vertexData, tcDesc); vx++;
+    PullVecToVertexData<glm::vec4>(vx, glm::vec4(rightTop, 1.0f), vertexData, posDesc);
+    PullVecToVertexData<glm::vec3>(vx, dummyNormal, vertexData, normsDesc);
+    PullVecToVertexData<glm::vec2>(vx, dummyTc, vertexData, tcDesc); vx++;
+
+    PullVecToVertexData<glm::vec4>(vx, glm::vec4(rightTop, 1.0f), vertexData, posDesc);
+    PullVecToVertexData<glm::vec3>(vx, dummyNormal, vertexData, normsDesc);
+    PullVecToVertexData<glm::vec2>(vx, dummyTc, vertexData, tcDesc); vx++;
+    PullVecToVertexData<glm::vec4>(vx, glm::vec4(leftTop, 1.0f), vertexData, posDesc);
+    PullVecToVertexData<glm::vec3>(vx, dummyNormal, vertexData, normsDesc);
+    PullVecToVertexData<glm::vec2>(vx, dummyTc, vertexData, tcDesc); vx++;
+    PullVecToVertexData<glm::vec4>(vx, glm::vec4(leftBottom, 1.0f), vertexData, posDesc);
+    PullVecToVertexData<glm::vec3>(vx, dummyNormal, vertexData, normsDesc);
+    PullVecToVertexData<glm::vec2>(vx, dummyTc, vertexData, tcDesc); vx++;
+    
+    Mesh* occMeshTemp = new Mesh();
+    Mesh::FromVertexData(device, textureCollection, vertexData, Mesh::GetVertexShader(device), Mesh::GetPixelShader(device), nullptr, *occMeshTemp);
+
+    occMesh = new SuperMesh({ occMeshTemp });
+    SuperMeshInstance occMeshInst = SuperMeshInstance(occMesh, glm::identity<glm::mat4x4>());
+
+    occluders.push_back(occMeshInst);
 }

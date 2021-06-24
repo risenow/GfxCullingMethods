@@ -16,6 +16,11 @@ struct Plane
     {
         return glm::vec4(n.x, n.y, n.z, d);
     }
+    glm::vec4 AsVecNormalized()
+    {
+        float len = glm::length(n);
+        return glm::vec4(n.x / len, n.y / len, n.z / len, d / len);
+    }
 
     glm::vec3 n;
     float d;

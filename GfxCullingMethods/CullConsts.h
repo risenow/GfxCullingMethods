@@ -9,15 +9,19 @@ DECLARE_CONSTANT_STRUCTURE CullConsts
     DECLARE_UINT padding1;
     DECLARE_UINT padding2;
     DECLARE_UINT padding3;
-    DECLARE_UINT padding4;
-    DECLARE_UINT padding5;
-    DECLARE_UINT padding6;
-    DECLARE_UINT padding7;
+
     DECLARE_FLOAT4 frLeft;
     DECLARE_FLOAT4 frRight;
     DECLARE_FLOAT4 frTop;
     DECLARE_FLOAT4 frBottom;
 
+    DECLARE_FLOAT4 rightDir;
+    DECLARE_FLOAT4 topDir;
+    DECLARE_FLOAT4 camPos;
+    DECLARE_FLOAT4 padding4;
+    DECLARE_FLOAT4X4 viewProj;
+    DECLARE_FLOAT4X4 view;
+    DECLARE_FLOAT4X4 proj;
 };
 
 #endif
