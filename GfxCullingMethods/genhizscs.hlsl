@@ -31,11 +31,9 @@ void CSEntry( uint GI : SV_GroupIndex, uint3 DTid : SV_DispatchThreadID )
 
     uint width = srcMipWidth;
     uint height = srcMipHeight;
-    //uint lvls;
-    //SrcMip.GetDimensions(0, width, height, lvls);
 
-    bool handleOddWidth = ((width & 1) != 0) && DTid.x*2 == width - 3;
-    bool handleOddHeight = ((height & 1) != 0) && DTid.y * 2 == height - 3;
+    bool handleOddWidth = ((width & 1) != 0);
+    bool handleOddHeight = ((height & 1) != 0);
 
     if (handleOddWidth)
     {
@@ -63,9 +61,10 @@ void CSEntry( uint GI : SV_GroupIndex, uint3 DTid : SV_DispatchThreadID )
 
     GroupMemoryBarrierWithGroupSync();
 
-    OutMip1.GetDimensions(width, height);
-    handleOddWidth = ((width & 1) != 0) && DTid.x == width - 3;
-    handleOddHeight = ((height & 1) != 0) && DTid.y == height - 3;
+    width = width >> 1;
+    height = height >> 1;
+    handleOddWidth = ((width & 1) != 0);
+    handleOddHeight = ((height & 1) != 0);
 
     if ((GI & 0x9) == 0)
     {

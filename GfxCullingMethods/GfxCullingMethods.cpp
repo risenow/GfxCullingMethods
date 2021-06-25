@@ -103,7 +103,7 @@ int main()
 
     DisplayAdaptersList displayAdapters;
 
-    GraphicsDevice device(D3D11DeviceCreationFlags(true, true), FEATURE_LEVEL_ONLY_D3D11, displayAdapters.GetAdapter(0));
+    GraphicsDevice device(D3D11DeviceCreationFlags(true, true), FEATURE_LEVEL_ONLY_D3D11, nullptr);
 
     static const std::string WindowTitle = "Culling techniques";
     Window window(WindowTitle, 1, 1, 1024, 768);
@@ -196,10 +196,6 @@ int main()
 
     while (!window.IsClosed())
     {
-        //superViewport1.Update();
-        //superViewport2.Update();
-
-        immediateRenderer.OnFrameBegin(device);
         renderer.OnFrameBegin(device);
         glm::vec3 cam1Pos = camera1.GetPosition();
         camera2.SetPosition(glm::vec3(cam1Pos.x, Camera2FixedY, cam1Pos.z));
@@ -208,25 +204,17 @@ int main()
 
         viewport1.Bind(device);
         
+        ID3DUserDefinedAnnotation* Annotation;
+        HRESULT hr = (device.GetD3D11DeviceContext())->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&Annotation);
 
+        if (Annotation)
+            Annotation->BeginEvent(L"GPU driven rendering");
         renderer.Render(device, camera1, colorTarget, depthTarget);
-        /*RenderStatistics stats = superViewport1.Render(device, colorTarget, depthTarget);
-
-        superViewport2.Render(device, colorTarget, depthTarget, false); //hack to setup second viewport render state
-        scene.Render(device, camera2, true); // render with this renderstate(rendertargets, depthtargets, etc)*/
-        for (size_t i = 0; i < meshInsts.size(); i++)
+        if (Annotation)
         {
-            SuperMeshInstance& inst = meshInsts[i];
-
-            if (inst.GetSuperMesh()->GetSubMesh(0) == renderer.m_BaseMeshes[14].mesh)
-            {
-                glm::vec4 v = inst.GetAABB().GetSBB();
-                immediateRenderer.WireframeAABB(AABB(inst.GetAABB().GetSBB()), glm::vec4(1.0, 0.0, 0.0, 1.0));
-            }
+            Annotation->EndEvent();
+            Annotation->Release();
         }
-        immediateRenderer.OnFrameEnd(device, camera1, colorTarget, depthTarget);
-
-        //window.SetTitle(WindowTitle + " " + std::to_string(stats.primCount) + " " + std::to_string(stats.drawCallsCount));
 
         swapchain.Present();
         device.OnPresent();
