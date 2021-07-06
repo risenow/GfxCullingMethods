@@ -341,7 +341,7 @@ void DemoScene1GenerateFor(GraphicsDevice& device, GraphicsTextureCollection& te
     int n = 4;
     {
 
-        int objsM = 10;
+        int objsM = 40;
         for (size_t i = 0; i < n * objsM; i++) //x38
         {
             glm::vec3 pos = RandomFromTo3(-650.0f, 650.0f);
