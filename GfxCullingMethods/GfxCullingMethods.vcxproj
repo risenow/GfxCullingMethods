@@ -148,8 +148,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AABB.cpp" />
     <ClCompile Include="BasicPixelShaderStorage.cpp" />
     <ClCompile Include="BasicVertexShaderStorage.cpp" />
+    <ClCompile Include="BVHFrustumVisibility.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DemoScene1Generate.cpp" />
     <ClCompile Include="DepthResolveCopyShaderStorage.cpp" />
@@ -157,6 +159,7 @@
     <ClCompile Include="dxerrorcodesinterpreteutil.cpp" />
     <ClCompile Include="GfxCullingMethods.cpp" />
     <ClCompile Include="gfxutils.cpp" />
+    <ClCompile Include="GPUDrivenRendering.cpp" />
     <ClCompile Include="GraphicsBuffer.cpp" />
     <ClCompile Include="GraphicsConstantsBuffer.cpp" />
     <ClCompile Include="GraphicsDevice.cpp" />
@@ -169,6 +172,7 @@
     <ClCompile Include="helperutil.cpp" />
     <ClCompile Include="ImmediateRenderer.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="LoPoApproxGeom.cpp" />
     <ClCompile Include="mathutils.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MouseKeyboardCameraController.cpp" />
@@ -177,7 +181,11 @@
     <ClCompile Include="Portal.cpp" />
     <ClCompile Include="randomutils.cpp" />
     <ClCompile Include="ResolveCopyDepth.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="strutils.cpp" />
+    <ClCompile Include="SuperMesh.cpp" />
+    <ClCompile Include="SuperMeshInstance.cpp" />
+    <ClCompile Include="SuperViewport.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="timeutils.cpp" />
     <ClCompile Include="tiny_obj_loader.cc" />
@@ -209,13 +217,13 @@
     <ClInclude Include="GraphicsConstantsBuffer.h" />
     <ClInclude Include="GraphicsDevice.h" />
     <ClInclude Include="GraphicsInputLayout.h" />
+    <ClInclude Include="GraphicsMarker.h" />
     <ClInclude Include="GraphicsShader.h" />
     <ClInclude Include="GraphicsSurface.h" />
     <ClInclude Include="GraphicsSwapchain.h" />
     <ClInclude Include="GraphicsTextureCollection.h" />
     <ClInclude Include="GraphicsViewport.h" />
     <ClInclude Include="helperutil.h" />
-    <ClInclude Include="HiZGenShaderStorage.h" />
     <ClInclude Include="ImmediateRenderer.h" />
     <ClInclude Include="LoPoApproxGeom.h" />
     <ClInclude Include="OctreeFrustumVisibility.h" />
@@ -256,16 +264,6 @@
     <ClInclude Include="VertexFormatHelper.h" />
     <ClInclude Include="Visibility.h" />
     <ClInclude Include="Window.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="basicps.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="basicvs.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

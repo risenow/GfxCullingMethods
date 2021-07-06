@@ -10,7 +10,7 @@ public:
         return inst;
     }
     BasicVertexShaderStorage() {
-        m_ShaderFile = L"basicvs.hlsl";
+        m_ShaderFile = L"Data/shaders/basicvs.hlsl";
         BasicVertexShaderStorage::NORMALS_ENABLED = 1 << 0;
         BasicVertexShaderStorage::TEXCOORDS_ENABLED = 1 << 1;
         BasicVertexShaderStorage::INSTANCED = 1 << 2;

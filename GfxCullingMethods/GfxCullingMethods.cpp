@@ -23,6 +23,7 @@
 #include "BasicPixelShaderStorage.h"
 #include "DepthResolveCopyShaderStorage.h"
 #include "GPUDrivenRenderer.h"
+#include "GraphicsMarker.h"
 #include "DemoScene1Generate.h"
 #include "randomutils.h"
 #include "basicvsconstants.h"
@@ -203,18 +204,14 @@ int main()
         pawnInstance->SetTransform(CreatePawnTranform(camera1));
 
         viewport1.Bind(device);
+        //GraphicsMarker marker(device, L"GPU driven rendering");
         
-        ID3DUserDefinedAnnotation* Annotation;
-        HRESULT hr = (device.GetD3D11DeviceContext())->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&Annotation);
+        MARKER_BEGIN(device, L"GPU driven rendering")
 
-        if (Annotation)
-            Annotation->BeginEvent(L"GPU driven rendering");
         renderer.Render(device, camera1, colorTarget, depthTarget);
-        if (Annotation)
-        {
-            Annotation->EndEvent();
-            Annotation->Release();
-        }
+
+        MARKER_END()
+        
 
         swapchain.Present();
         device.OnPresent();

@@ -31,7 +31,6 @@ void ImmediateRenderer::OnFrameEnd(GraphicsDevice& device, Camera& camera, Color
 {
 //#ifdef _DEBUG
     GraphicsShader lineExpandGS = GetLineExpandShader(device);
-    //GraphicsGeometryShader pointExpandGS = shadersCollection.GetShader<GraphicsGeometryShader>(std::wstring(L"Test/pointexpandgs.hlsl"), 0u);
 
     ID3D11RenderTargetView* colorTargetView = colorTarget.GetView();
     ID3D11DepthStencilView* depthView = depthTarget.GetView();

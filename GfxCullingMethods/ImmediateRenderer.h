@@ -9,8 +9,6 @@
 #include "Camera.h"
 #include "basicvsconstants.h"
 
-//#include "Data/Shaders/Test/basicvsconstants.h"
-
 #define IMMEDIATE_RENDER_MAX_VERTEXES 500000
 
 struct BasicPSConstsDummy { float __p1; float __p2; float __p3; float __p4; };
@@ -28,17 +26,17 @@ public:
     };
     static GraphicsShader& GetLineExpandShader(GraphicsDevice& dev)
     {
-        static GraphicsShader s = GraphicsShader::FromFile(dev, GraphicsShaderType_Geometry, L"lineexpandgs.hlsl");
+        static GraphicsShader s = GraphicsShader::FromFile(dev, GraphicsShaderType_Geometry, L"Data/shaders/lineexpandgs.hlsl");
         return s;
     }
     static GraphicsShader& GetVertexShader(GraphicsDevice& dev)
     {
-        static GraphicsShader s = GraphicsShader::FromFile(dev, GraphicsShaderType_Vertex, L"colorvs.hlsl");
+        static GraphicsShader s = GraphicsShader::FromFile(dev, GraphicsShaderType_Vertex, L"Data/shaders/colorvs.hlsl");
         return s;
     }
     static GraphicsShader& GetPixelShader(GraphicsDevice& dev)
     {
-        static GraphicsShader s = GraphicsShader::FromFile(dev, GraphicsShaderType_Pixel, L"colorps.hlsl");
+        static GraphicsShader s = GraphicsShader::FromFile(dev, GraphicsShaderType_Pixel, L"Data/shaders/colorps.hlsl");
         return s;
     }
     ImmediateRenderer();

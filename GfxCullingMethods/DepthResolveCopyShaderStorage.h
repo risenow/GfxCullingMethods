@@ -10,7 +10,7 @@ public:
         return inst;
     }
     DepthResolveCopyShaderStorage() {
-        m_ShaderFile = L"copydepthcs.hlsl";
+        m_ShaderFile = L"Data/shaders/copydepthcs.hlsl";
         DepthResolveCopyShaderStorage::RESOLVE_ENABLED = 1 << 0;
 
         m_MacroSet = { GraphicsShaderMacro("RESOLVE", "1") };

@@ -126,6 +126,30 @@
     <ClCompile Include="ResolveCopyDepth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GPUDrivenRendering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AABB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BVHFrustumVisibility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LoPoApproxGeom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperMeshInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperViewport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GraphicsDevice.h">
@@ -329,22 +353,14 @@
     <ClInclude Include="GenHiZConsts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HiZGenShaderStorage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DepthResolveCopyShaderStorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ResolveCopyDepth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="basicvs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="basicps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
+    <ClInclude Include="GraphicsMarker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

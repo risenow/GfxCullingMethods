@@ -10,7 +10,7 @@ public:
         return inst;
     }
     BasicPixelShaderStorage() {
-        m_ShaderFile = L"basicps.hlsl";
+        m_ShaderFile = L"Data/shaders/basicps.hlsl";
         BasicPixelShaderStorage::NORMALS_ENABLED = 1 << 0;
         BasicPixelShaderStorage::TEXCOORDS_ENABLED = 1 << 1;
         BasicPixelShaderStorage::INSTANCED = 1 << 2;
