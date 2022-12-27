@@ -1,5 +1,7 @@
 #include "gfxutils.h"
 #include "SuperMesh.h"
+#include "MultisampleType.h"
+#include <dxgicommon.h>
 #include <assert.h>
 
 ID3D11SamplerState* CreateSampler(GraphicsDevice& device, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE uMode,

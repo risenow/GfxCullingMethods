@@ -1,8 +1,13 @@
 #include "GPUDrivenRenderer.h"
+#include <string>
 
-GPUDrivenRenderer::GPUDrivenRenderer(GraphicsDevice& device) : m_HiZCullingSRV(nullptr)
+GPUDrivenRenderer::GPUDrivenRenderer(GraphicsDevice& device, bool cullSmallObjects, float smallObjectThreshold)
+    : m_HiZCullingSRV(nullptr)
 {
-    m_CullShader = GraphicsShader::FromFile(device, GraphicsShaderType_Compute, L"Data/shaders/cullcs.hlsl");
+    m_CullShader = GraphicsShader::FromFile(device, GraphicsShaderType_Compute, L"Data/shaders/cullcs.hlsl", 
+        ShaderVariation({ 
+            {"CULL_SMALL_OBJECTS", std::to_string((int)cullSmallObjects)},
+            {"SMALL_OBJECT_THRESHOLD", std::to_string(smallObjectThreshold)}}));
     m_HiZGenShader = GraphicsShader::FromFile(device, GraphicsShaderType_Compute, L"Data/shaders/genhizscs.hlsl");
 
     CullConsts constsCull;
@@ -78,7 +83,7 @@ void GPUDrivenRenderer::OnFrameBegin(GraphicsDevice& device)
 }
 
 
-void GPUDrivenRenderer::Render(GraphicsDevice& device, Camera& camera, ColorSurface& colorTarget, DepthSurface& depthTarget)
+void GPUDrivenRenderer::Render(GraphicsDevice& device, Camera& camera, ColorSurface& colorTarget, DepthSurface& depthTarget, bool useOldCullingResults)
 {
     ID3D11RenderTargetView* colorTargetView = colorTarget.GetView();
     ID3D11DepthStencilView* depthView = depthTarget.GetView();
@@ -97,8 +102,11 @@ void GPUDrivenRenderer::Render(GraphicsDevice& device, Camera& camera, ColorSurf
     ID3D11RenderTargetView* view[] = { nullptr };
     device.GetD3D11DeviceContext()->OMSetRenderTargets(1, view, nullptr);
 
-    GenerateHiZ(device, *depthTarget.GetTexture());
-    Cull(device, camera);
+    if (!useOldCullingResults)
+    {
+        GenerateHiZ(device, *depthTarget.GetTexture());
+        Cull(device, camera);
+    }
 
     device.GetD3D11DeviceContext()->OMSetRenderTargets(1, &colorTargetView, depthView);
 

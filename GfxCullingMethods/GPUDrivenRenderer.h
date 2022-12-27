@@ -28,12 +28,12 @@ struct BaseMesh
 class GPUDrivenRenderer
 {
 public:
-    GPUDrivenRenderer(GraphicsDevice& device);
+    GPUDrivenRenderer(GraphicsDevice& device, bool cullSmallObjects, float smallObjectSizeThreshold);
 
     void Consume(GraphicsDevice& device, const std::vector<SuperMeshInstance>& insts, const std::vector<SuperMeshInstance>& occInsts);
     void OnFrameBegin(GraphicsDevice& device);
 
-    void Render(GraphicsDevice& device, Camera& camera, ColorSurface& colorTarget, DepthSurface& depthTarget);
+    void Render(GraphicsDevice& device, Camera& camera, ColorSurface& colorTarget, DepthSurface& depthTarget, bool useOldCullingResults = false);
 private:
     void ReinitHiZTexture(GraphicsDevice& device, const Texture2D& depth);
 

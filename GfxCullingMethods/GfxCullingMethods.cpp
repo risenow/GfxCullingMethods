@@ -25,8 +25,12 @@
 #include "GPUDrivenRenderer.h"
 #include "GraphicsMarker.h"
 #include "DemoScene1Generate.h"
+#include "gfxutils.h"
 #include "randomutils.h"
 #include "basicvsconstants.h"
+
+const bool EnableCullResultsDemoViewport = true;
+const int ViewportSizeDivider = EnableCullResultsDemoViewport ? 2 : 1;
 
 Camera CreateInitialCamera(float aspect)
 {
@@ -106,9 +110,11 @@ int main()
 
     GraphicsDevice device(D3D11DeviceCreationFlags(true, true), FEATURE_LEVEL_ONLY_D3D11, nullptr);
 
+    const MultisampleType multisampleType = MultisampleType::MULTISAMPLE_TYPE_4X;
+
     static const std::string WindowTitle = "Culling techniques";
     Window window(WindowTitle, 1, 1, 1024, 768);
-    GraphicsSwapChain swapchain(device, window, MultisampleType::MULTISAMPLE_TYPE_4X);
+    GraphicsSwapChain swapchain(device, window, MULTISAMPLE_TYPE_NONE);
     GraphicsTextureCollection textureCollection(device);
 
     BasicVertexShaderStorage::GetInstance().Load(device);
@@ -116,7 +122,7 @@ int main()
     DepthResolveCopyShaderStorage::GetInstance().Load(device);
 
     ImmediateRenderer immediateRenderer(device);
-    GPUDrivenRenderer renderer(device);
+    GPUDrivenRenderer renderer(device, false, 1.0f);
 
     D3D11_RASTERIZER_DESC rastState;
     rastState.AntialiasedLineEnable = FALSE;
@@ -128,7 +134,7 @@ int main()
     rastState.DepthBiasClamp = 0.0f;
     rastState.DepthClipEnable = FALSE;
     rastState.ScissorEnable = FALSE;
-    rastState.MultisampleEnable = TRUE;
+    rastState.MultisampleEnable = multisampleType != MultisampleType::MULTISAMPLE_TYPE_NONE;
 
     ID3D11RasterizerState* d3dRastState;
 
@@ -157,8 +163,33 @@ int main()
     D3D_HR_OP(device.GetD3D11Device()->CreateDepthStencilState(&depthStencilDesc, &noDepthStencilState));
     device.GetD3D11DeviceContext()->OMSetDepthStencilState(noDepthStencilState, 0);
 
-    ColorSurface colorTarget = swapchain.GetBackBufferSurface();
-    DepthSurface depthTarget(device, colorTarget.GetWidth(), colorTarget.GetHeight(), 1, 1, DXGI_FORMAT_R24G8_TYPELESS, GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, MultisampleType::MULTISAMPLE_TYPE_4X), D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, 0, 0);
+    ColorSurface backbufferTarget = swapchain.GetBackBufferSurface();
+
+    DXGI_SAMPLE_DESC colorSampleDesc = GetSampleDesc(device, backbufferTarget.GetTexture()->GetFormat(), multisampleType);
+    ColorSurface colorTarget(
+        device, backbufferTarget.GetWidth() / 2, backbufferTarget.GetHeight(),
+        1, 1,
+        backbufferTarget.GetTexture()->GetFormat(), colorSampleDesc,
+        D3D11_USAGE_DEFAULT, D3D11_BIND_RENDER_TARGET, 0, 0);
+    DepthSurface depthTarget(device, 
+        colorTarget.GetWidth(), colorTarget.GetHeight(), 
+        1, 1, DXGI_FORMAT_R24G8_TYPELESS, GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, multisampleType),
+        D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, 0, 0);
+
+    ColorSurface colorTargetDemo(
+        device, backbufferTarget.GetWidth() / 2, backbufferTarget.GetHeight(),
+        1, 1,
+        colorTarget.GetTexture()->GetFormat(), colorSampleDesc,
+        D3D11_USAGE_DEFAULT, D3D11_BIND_RENDER_TARGET, 0, 0);
+    DepthSurface depthTargetDemo(device, backbufferTarget.GetWidth()/2, backbufferTarget.GetHeight(),
+        1, 1, DXGI_FORMAT_R24G8_TYPELESS, 
+        GetSampleDesc(device, DXGI_FORMAT_D24_UNORM_S8_UINT, multisampleType),
+        D3D11_USAGE_DEFAULT, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, 0, 0);;
+
+    Texture2D tempTexture(device,
+        backbufferTarget.GetWidth() / 2, backbufferTarget.GetHeight(), 1, 1,
+        backbufferTarget.GetTexture()->GetFormat(), GetSampleDesc(device, backbufferTarget.GetTexture()->GetFormat(), MULTISAMPLE_TYPE_NONE),
+        D3D11_USAGE_DEFAULT, 0, 0, 0);
 
     Camera camera1 = CreateInitialCamera((float)window.GetWidth() / (float)window.GetHeight());
     Camera camera2 = CreateInitialCamera2((float)window.GetWidth() / (float)window.GetHeight());
@@ -183,11 +214,12 @@ int main()
     Scene scene;
     DemoScene1Generate(device, textureCollection, scene, mesh, subMeshes, roomMesh);*/
 
-    //GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
-    GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth(), window.GetHeight()));
+    GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
+    //GraphicsViewport viewport1(BoundRect(Point2D(0, 0), window.GetWidth(), window.GetHeight()));
     SuperViewport superViewport1(viewport1, camera1, &scene);
 
-    GraphicsViewport viewport2(BoundRect(Point2D(window.GetWidth() / 2, 0), window.GetWidth() / 2, window.GetHeight()));
+    //!!!! change!!! fixme
+    GraphicsViewport viewport2(BoundRect(Point2D(0, 0), window.GetWidth() / 2, window.GetHeight()));
     SuperViewport superViewport2(viewport2, camera2, nullptr);
 
     SuperMeshInstance* pawnInstance = new SuperMeshInstance(GetPawnPlaceholderMesh(device, textureCollection), CreatePawnTranform(camera1));
@@ -203,15 +235,44 @@ int main()
 
         pawnInstance->SetTransform(CreatePawnTranform(camera1));
 
-        viewport1.Bind(device);
-        //GraphicsMarker marker(device, L"GPU driven rendering");
-        
         MARKER_BEGIN(device, L"GPU driven rendering")
-
+        viewport1.Bind(device);
         renderer.Render(device, camera1, colorTarget, depthTarget);
-
         MARKER_END()
         
+        MARKER_BEGIN(device, L"Demo of culling results")
+        viewport2.Bind(device);
+        renderer.Render(device, camera2, colorTargetDemo, depthTargetDemo, true);
+        MARKER_END()
+
+            /*device.GetD3D11DeviceContext()->CopySubresourceRegion(
+                colorTarget.GetTexture()->GetD3D11Texture2D(), 0,
+                window.GetWidth() / 2, 0,
+                0, colorTargetDemo.GetTexture()->GetD3D11Texture2D(), 0, nullptr);*/
+        device.GetD3D11DeviceContext()->ResolveSubresource(
+            tempTexture.GetD3D11Texture2D(), 0,
+            colorTarget.GetTexture()->GetD3D11Texture2D(), 0,
+            tempTexture.GetFormat()
+        );
+        device.GetD3D11DeviceContext()->CopySubresourceRegion(
+            backbufferTarget.GetTexture()->GetD3D11Texture2D(), 0,
+            0, 0, 0,
+            tempTexture.GetD3D11Texture2D(), 0, nullptr
+        );
+
+        device.GetD3D11DeviceContext()->ResolveSubresource(
+            tempTexture.GetD3D11Texture2D(), 0,
+            colorTargetDemo.GetTexture()->GetD3D11Texture2D(), 0,
+            tempTexture.GetFormat()
+        );
+        device.GetD3D11DeviceContext()->CopySubresourceRegion(
+            backbufferTarget.GetTexture()->GetD3D11Texture2D(), 0,
+            colorTarget.GetWidth(), 0, 0,
+            tempTexture.GetD3D11Texture2D(), 0, nullptr
+        );
+        //viewport1.Bind(device);
+
+
 
         swapchain.Present();
         device.OnPresent();

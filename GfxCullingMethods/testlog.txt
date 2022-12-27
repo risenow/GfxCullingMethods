@@ -1,15 +1,18 @@
-[TIME:314] Adapters enumerated:
-[TIME:314] Adapter index: 0
-[TIME:314] Description: NVIDIA GeForce GTX 1650 Ti
-[TIME:314] 
-[TIME:314] Adapter index: 1
-[TIME:315] Description: Microsoft Basic Render Driver
-[TIME:315] 
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\copydepthcs.hlsl(20,15-29): warning X3206: 'Load': implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\copydepthcs.hlsl(23,20-34): warning X3206: 'Load': implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(109,8-29): warning X3206: implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(110,8-46): warning X3206: implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(111,8-46): warning X3206: implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(112,8-46): warning X3206: implicit truncation of vector type
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(85,15): warning X4000: use of potentially uninitialized variable (OcclusionCullSphere)
-C:\Users\Professional\source\repos\GfxCullingMethods\GfxCullingMethods\Data\shaders\genhizscs.hlsl(114,9-52): warning X3206: implicit truncation of vector type
+[TIME:213] Adapters enumerated:
+[TIME:213] Adapter index: 0
+[TIME:213] Description: AMD Radeon(TM) Graphics
+[TIME:213] 
+[TIME:213] Adapter index: 1
+[TIME:213] Description: NVIDIA GeForce GTX 1650 Ti
+[TIME:213] 
+[TIME:213] Adapter index: 2
+[TIME:213] Description: Microsoft Basic Render Driver
+[TIME:213] 
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\copydepthcs.hlsl(20,15-29): warning X3206: 'Load': implicit truncation of vector type
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\copydepthcs.hlsl(23,20-34): warning X3206: 'Load': implicit truncation of vector type
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(109,8-29): warning X3206: implicit truncation of vector type
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(110,8-46): warning X3206: implicit truncation of vector type
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(111,8-46): warning X3206: implicit truncation of vector type
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(112,8-46): warning X3206: implicit truncation of vector type
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\cullcs.hlsl(85,15): warning X4000: use of potentially uninitialized variable (OcclusionCullSphere)
+C:\Users\Professional\Documents\GitHub\GfxCullingMethods\GfxCullingMethods\Data\shaders\genhizscs.hlsl(114,9-52): warning X3206: implicit truncation of vector type

@@ -2,7 +2,7 @@
 #include "Camera.h"
 #include "Window.h"
 
-static const float DEFAULT_MOUSE_SENSETIVE = 0.001f;
+static const float DEFAULT_MOUSE_SENSETIVE = 0.01f;
 
 class MouseKeyboardCameraController
 {

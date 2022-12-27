@@ -20,3 +20,4 @@ class SuperMesh;
 SuperMesh* CreatePawnPlaceholderMesh(GraphicsDevice& device, GraphicsTextureCollection& textureCollection);
 SuperMesh* GetPawnPlaceholderMesh(GraphicsDevice& device, GraphicsTextureCollection& textureCollection);
 glm::vec3 GetAxis(size_t i);
+DXGI_SAMPLE_DESC CreateSampleDesc(MultisampleType msType);
